@@ -1,0 +1,131 @@
+:host {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.experts-page {
+  flex: 1;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.experts-back {
+  margin: 0 0 1rem;
+}
+
+.experts-back__link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--kd-navy-soft);
+
+  &:hover {
+    color: var(--kd-primary-dark);
+  }
+}
+
+.experts-hero {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.experts-hero__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--kd-navy);
+  letter-spacing: -0.02em;
+}
+
+.experts-hero__subtitle {
+  margin: 0.4rem auto 1.35rem;
+  max-width: 32rem;
+  font-size: 0.95rem;
+  color: var(--kd-text-muted);
+}
+
+.experts-search__shell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 0.25rem 0.25rem 0.25rem 1rem;
+  background: var(--kd-surface);
+  border: 1px solid var(--kd-border);
+  border-radius: 999px;
+  box-shadow: var(--kd-shadow);
+}
+
+.experts-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.7rem 0.4rem;
+  font-size: 1rem;
+  color: var(--kd-text);
+  outline: none;
+}
+
+.experts-search__btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  font-weight: 700;
+  background: var(--kd-primary);
+  color: var(--kd-navy);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--kd-primary-dark);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.experts-section {
+  margin-top: 1.75rem;
+}
+
+.experts-section__header {
+  margin-bottom: 0.85rem;
+}
+
+.experts-section__title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kd-navy);
+}
+
+.experts-section__status {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  font-size: 0.88rem;
+  color: var(--kd-text-muted);
+  background: var(--kd-surface);
+  border: 1px dashed var(--kd-border);
+  border-radius: var(--kd-radius-md);
+}
+
+.experts-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 0.85rem;
+}

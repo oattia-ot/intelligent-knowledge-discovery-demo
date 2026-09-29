@@ -1,0 +1,120 @@
+{
+  "/community": {
+    "target": "https://20.86.52.130:9033",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/community": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/content/Index": {
+    "target": "https://20.86.52.130:9104",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/content/Index": ""
+    },
+    "logLevel": "info",
+    "test": "/DRESTATUS"
+  },
+  "/content-index": {
+    "target": "https://20.86.52.130:9104",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/content-index": ""
+    },
+    "logLevel": "info",
+    "test": "/DRESTATUS"
+  },
+  "/content": {
+    "target": "https://20.86.52.130:9103",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/content": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/qms": {
+    "target": "https://20.86.52.130:16000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/qms": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/view": {
+    "target": "https://20.86.52.130:9083",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/view": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/action=": {
+    "target": "https://20.86.52.130:9083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/Action=": {
+    "target": "https://20.86.52.130:9083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/View_files": {
+    "target": "https://20.86.52.130:9083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/viewtemp": {
+    "target": "https://20.86.52.130:9083",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/agentstore": {
+    "target": "https://20.86.52.130:20050",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/agentstore": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/category": {
+    "target": "https://20.86.52.130:9060",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/category": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  },
+  "/answerserver": {
+    "target": "https://20.86.52.130:12000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/answerserver": ""
+    },
+    "logLevel": "info",
+    "test": "/action=getstatus"
+  }
+}

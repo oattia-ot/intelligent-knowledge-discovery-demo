@@ -1,0 +1,6 @@
+{{!--
+  Default: use DREREFERENCE as the link target.
+  If the value is already an absolute URL it works as href;
+  otherwise browsers treat it as a relative path (adjust per connector).
+--}}
+{{#if DREREFERENCE}}{{DREREFERENCE}}{{else}}{{#if reference}}{{reference}}{{/if}}{{/if}}

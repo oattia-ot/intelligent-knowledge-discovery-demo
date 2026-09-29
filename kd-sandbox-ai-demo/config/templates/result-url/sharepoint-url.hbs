@@ -1,0 +1,5 @@
+{{!--
+  SharePoint: open the document in SharePoint using the connector URL field.
+  Do not use DREREFERENCE (often a filesystem/index path).
+--}}
+{{#if URL}}{{URL}}{{else}}{{#if FINAL_URL}}{{FINAL_URL}}{{/if}}{{/if}}

@@ -1,0 +1,160 @@
+<div class="settings-page">
+  <p class="settings-back">
+    <a routerLink="/settings" class="settings-back__link">← Back to settings</a>
+  </p>
+
+  <header class="settings-hero">
+    <h1 class="settings-hero__title">My profile</h1>
+    <p class="settings-hero__subtitle">
+      Search terms in your Community interest profile for
+      {{ signedInUser() || 'the signed-in user' }}. Expand a profile to review
+      terms before deleting. This does not delete your sign-in.
+    </p>
+
+    <form class="settings-find" role="search" (ngSubmit)="$event.preventDefault()">
+      <label class="sr-only" for="profile-term-q">Search profile terms</label>
+      <div class="settings-find__shell">
+        <span class="settings-find__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+          </svg>
+        </span>
+        <input
+          id="profile-term-q"
+          type="search"
+          name="query"
+          class="settings-find__input"
+          placeholder="Search terms, profile name, or PID…"
+          [(ngModel)]="query"
+          (ngModelChange)="onFilterChange($event)"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          autofocus
+        />
+      </div>
+    </form>
+  </header>
+
+  @if (profilesLoading()) {
+    <div class="settings-empty settings-empty--wait" role="status" aria-live="polite">
+      <span class="profile-spinner" aria-hidden="true"></span>
+      <p class="profile-spinner__label">Loading your profile…</p>
+    </div>
+  } @else if (profilesError() && profiles().length === 0) {
+    <p class="settings-empty settings-note--error" role="alert">{{ profilesError() }}</p>
+  } @else if (profiles().length === 0) {
+    <p class="settings-empty" role="status">
+      No Community profile terms stored for you yet. Preview documents in search
+      to train your profile.
+    </p>
+  } @else if (visibleProfiles().length === 0) {
+    <p class="settings-empty" role="status">
+      No profiles match “{{ filter().trim() }}”.
+    </p>
+  } @else {
+    <ul class="settings-profile-list">
+      @for (profile of visibleProfiles(); track profileKey(profile)) {
+        <li class="settings-profile-item">
+          <div class="settings-profile-row">
+            <button
+              type="button"
+              class="settings-profile-row__toggle"
+              (click)="toggleProfileExpand(profile, $event)"
+              [attr.aria-expanded]="isProfileExpanded(profile)"
+              [attr.aria-controls]="profileDomId(profile)"
+            >
+              <span class="settings-profile-row__chevron" aria-hidden="true">{{
+                isProfileExpanded(profile) ? '▾' : '▸'
+              }}</span>
+              <span class="settings-profile-row__label">{{ profileLabel(profile) }}</span>
+            </button>
+            <button
+              type="button"
+              class="settings-chip settings-chip--danger"
+              (click)="askDeleteProfile(profile, $event)"
+              [disabled]="deleteBusy()"
+            >
+              Delete
+            </button>
+          </div>
+          @if (isProfileExpanded(profile)) {
+            <div class="settings-profile-terms" [id]="profileDomId(profile)">
+              @if (sortedTerms(profile).length === 0) {
+                <p class="settings-card__hint">No terms in this profile.</p>
+              } @else {
+                <table class="settings-term-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Term</th>
+                      <th scope="col">Weight</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (term of sortedTerms(profile); track term.value; let i = $index) {
+                      <tr [class.settings-term-table__row--match]="termMatches(term)">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ term.value }}</td>
+                        <td>{{ term.weight }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  <button
+    type="button"
+    class="settings-danger-btn"
+    (click)="askDeleteAllProfiles($event)"
+    [disabled]="deleteBusy() || !signedInUser() || profiles().length === 0"
+  >
+    Delete my profile
+  </button>
+  @if (profilesStatus()) {
+    <p class="settings-note" role="status">{{ profilesStatus() }}</p>
+  }
+  @if (profilesError() && profiles().length > 0) {
+    <p class="settings-note settings-note--error" role="alert">{{ profilesError() }}</p>
+  }
+</div>
+
+@if (confirmOpen()) {
+  <div
+    class="settings-confirm-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="settings-confirm-title"
+    (click)="cancelDelete($event)"
+  >
+    <div class="settings-confirm" (click)="$event.stopPropagation()">
+      <h2 id="settings-confirm-title" class="settings-confirm__title">Delete profile?</h2>
+      <p class="settings-confirm__copy">{{ confirmCopy() }}</p>
+      <div class="settings-confirm__actions">
+        <button
+          type="button"
+          class="settings-danger-btn"
+          (click)="confirmDelete($event)"
+          [disabled]="deleteBusy()"
+        >
+          {{ deleteBusy() ? 'Deleting…' : 'Delete' }}
+        </button>
+        <button
+          type="button"
+          class="settings-chip"
+          (click)="cancelDelete($event)"
+          [disabled]="deleteBusy()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+}

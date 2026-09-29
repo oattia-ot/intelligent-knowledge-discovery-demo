@@ -1,0 +1,471 @@
+{
+  "id": "aci-command",
+  "flowName": "IDOL ACI Command Flow",
+  "purpose": "Generic NiFi pattern for executing allow-listed IDOL ACI commands.",
+  "processors": [
+    {
+      "name": "InputRequest",
+      "type": "org.apache.nifi.processors.standard.ListenHTTP",
+      "role": "input"
+    },
+    {
+      "name": "ACICommandBuilder",
+      "type": "org.apache.nifi.processors.standard.ReplaceText",
+      "role": "builder"
+    },
+    {
+      "name": "IDOLACIRequest",
+      "type": "org.apache.nifi.processors.standard.InvokeHTTP",
+      "role": "aci"
+    },
+    {
+      "name": "ResponseValidation",
+      "type": "org.apache.nifi.processors.standard.ValidateXml",
+      "role": "validate"
+    },
+    {
+      "name": "Success",
+      "type": "org.apache.nifi.processors.standard.LogAttribute",
+      "role": "success"
+    },
+    {
+      "name": "Failure",
+      "type": "org.apache.nifi.processors.standard.LogAttribute",
+      "role": "failure"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "InputRequest",
+      "to": "ACICommandBuilder",
+      "relationship": "success"
+    },
+    {
+      "from": "ACICommandBuilder",
+      "to": "IDOLACIRequest",
+      "relationship": "success"
+    },
+    {
+      "from": "IDOLACIRequest",
+      "to": "ResponseValidation",
+      "relationship": "Original"
+    },
+    {
+      "from": "ResponseValidation",
+      "to": "Success",
+      "relationship": "valid"
+    },
+    {
+      "from": "ResponseValidation",
+      "to": "Failure",
+      "relationship": "invalid"
+    }
+  ],
+  "commandAllowList": [
+    "GetStatus",
+    "GetVersion",
+    "Query",
+    "GetContent",
+    "IndexerGetStatus"
+  ],
+  "unsafeConstruction": "blocked",
+  "requiredIdolServices": [
+    "Content"
+  ],
+  "errorHandling": {
+    "retry": {
+      "count": 3,
+      "delay": "30 sec"
+    },
+    "failureQueue": true,
+    "deadLetterQueue": false,
+    "relationships": [
+      "success",
+      "failure"
+    ]
+  },
+  "supportedVersions": {
+    "idol": "26.3",
+    "nifi": "26.3",
+    "nar": "26.3.0-nifi2",
+    "profile": "idol-26.3-nifi-26.3"
+  },
+  "requiredNars": [
+    "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+    "idol-nifi-framework-nar-26.3.0-nifi2.nar",
+    "idol-nifi-connector-filesystem-nar-26.3.0-nifi2.nar"
+  ],
+  "narCompatibility": {
+    "status": "PASS",
+    "idolVersion": "26.3",
+    "nifiVersion": "26.3",
+    "narProfile": "idol-26.3-nifi-26.3",
+    "narVersion": "26.3.0-nifi2",
+    "narValidation": "PASS",
+    "selectedNars": [
+      {
+        "filename": "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+        "narVersion": "26.3.0-nifi2",
+        "groupId": "idol.nifi",
+        "artifactId": "idol-nifi-framework-api-nar",
+        "sha256": null,
+        "processors": [],
+        "controllerServices": [
+          "idol.nifi.service.IdolSslConfigServiceImpl",
+          "idol.nifi.service.IdolLicenseServiceImpl",
+          "idol.nifi.service.IdolLoggingServiceImpl",
+          "idol.nifi.service.IdolFlowFileServiceImpl"
+        ],
+        "dependencies": [],
+        "javaCompatibility": "21",
+        "required": true,
+        "availability": "catalogued-not-bundled",
+        "source": "IDOL NiFi Ingest 26.3 package",
+        "installRequirements": [
+          "InstallDir/extensions/",
+          "API NAR first",
+          "single minor version only"
+        ],
+        "path": null,
+        "present": false
+      },
+      {
+        "filename": "idol-nifi-framework-nar-26.3.0-nifi2.nar",
+        "narVersion": "26.3.0-nifi2",
+        "groupId": "idol.nifi",
+        "artifactId": "idol-nifi-framework-nar",
+        "sha256": null,
+        "processors": [
+          "idol.nifi.processor.PutIDOL",
+          "idol.nifi.processor.GenerateDocumentFlowFile",
+          "idol.nifi.processor.ExecuteDocumentPython",
+          "idol.nifi.processor.KeyViewFilter",
+          "idol.nifi.processor.Eduction",
+          "idol.nifi.processor.RouteDocument"
+        ],
+        "controllerServices": [],
+        "dependencies": [
+          "idol-nifi-framework-api-nar-26.3.0-nifi2.nar"
+        ],
+        "javaCompatibility": "21",
+        "required": true,
+        "availability": "catalogued-not-bundled",
+        "source": "IDOL NiFi Ingest 26.3 package",
+        "installRequirements": [
+          "InstallDir/extensions/",
+          "API NAR first",
+          "single minor version only"
+        ],
+        "path": null,
+        "present": false
+      },
+      {
+        "filename": "idol-nifi-connector-filesystem-nar-26.3.0-nifi2.nar",
+        "narVersion": "26.3.0-nifi2",
+        "groupId": "idol.nifi",
+        "artifactId": "idol-nifi-connector-filesystem-nar",
+        "sha256": null,
+        "processors": [
+          "idol.nifi.connector.GetFileSystem"
+        ],
+        "controllerServices": [],
+        "dependencies": [
+          "idol-nifi-framework-api-nar-26.3.0-nifi2.nar"
+        ],
+        "javaCompatibility": "21",
+        "required": true,
+        "availability": "catalogued-not-bundled",
+        "source": "IDOL File System Connector 26.3 package",
+        "installRequirements": [
+          "InstallDir/extensions/",
+          "API NAR first",
+          "single minor version only"
+        ],
+        "path": null,
+        "present": false
+      }
+    ],
+    "requiredNars": [
+      "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+      "idol-nifi-framework-nar-26.3.0-nifi2.nar",
+      "idol-nifi-connector-filesystem-nar-26.3.0-nifi2.nar"
+    ],
+    "missingNars": [
+      "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+      "idol-nifi-framework-nar-26.3.0-nifi2.nar",
+      "idol-nifi-connector-filesystem-nar-26.3.0-nifi2.nar"
+    ],
+    "unavailableProcessors": [],
+    "constraints": [
+      "IDOL 26.3",
+      "NiFi product 26.3",
+      "NAR 26.3.0-nifi2",
+      "Apache NiFi 2.9.0",
+      "Java 21"
+    ],
+    "reason": null,
+    "requiredAction": null,
+    "available": {
+      "profiles": [
+        "idol-26.2-nifi-26.2",
+        "idol-26.3-nifi-26.3"
+      ],
+      "idolVersions": [
+        "26.2",
+        "26.3"
+      ],
+      "nifiVersions": [
+        "26.2",
+        "26.3"
+      ],
+      "narVersions": [
+        "26.2.0-nifi2",
+        "26.3.0-nifi2"
+      ],
+      "apacheNifiVersions": [
+        "2.0.0",
+        "2.1.0",
+        "2.2.0",
+        "2.3.0",
+        "2.4.0",
+        "2.9.0"
+      ]
+    },
+    "profile": {
+      "id": "idol-26.3-nifi-26.3",
+      "idolVersion": "26.3",
+      "nifiVersion": "26.3",
+      "narVersion": "26.3.0-nifi2",
+      "apacheNifiVersions": [
+        "2.9.0"
+      ],
+      "supportedIdolVersions": [
+        "26.3",
+        "26.3.0"
+      ],
+      "supportedNifiVersions": [
+        "26.3",
+        "26.3.0"
+      ],
+      "artifacts": [
+        {
+          "filename": "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+          "narVersion": "26.3.0-nifi2",
+          "groupId": "idol.nifi",
+          "artifactId": "idol-nifi-framework-api-nar",
+          "sha256": null,
+          "processors": [],
+          "controllerServices": [
+            "idol.nifi.service.IdolSslConfigServiceImpl",
+            "idol.nifi.service.IdolLicenseServiceImpl",
+            "idol.nifi.service.IdolLoggingServiceImpl",
+            "idol.nifi.service.IdolFlowFileServiceImpl"
+          ],
+          "dependencies": [],
+          "javaCompatibility": "21",
+          "required": true,
+          "availability": "catalogued-not-bundled",
+          "source": "IDOL NiFi Ingest 26.3 package",
+          "installRequirements": [
+            "InstallDir/extensions/",
+            "API NAR first",
+            "single minor version only"
+          ],
+          "path": null,
+          "present": false
+        },
+        {
+          "filename": "idol-nifi-framework-nar-26.3.0-nifi2.nar",
+          "narVersion": "26.3.0-nifi2",
+          "groupId": "idol.nifi",
+          "artifactId": "idol-nifi-framework-nar",
+          "sha256": null,
+          "processors": [
+            "idol.nifi.processor.PutIDOL",
+            "idol.nifi.processor.GenerateDocumentFlowFile",
+            "idol.nifi.processor.ExecuteDocumentPython",
+            "idol.nifi.processor.KeyViewFilter",
+            "idol.nifi.processor.Eduction",
+            "idol.nifi.processor.RouteDocument"
+          ],
+          "controllerServices": [],
+          "dependencies": [
+            "idol-nifi-framework-api-nar-26.3.0-nifi2.nar"
+          ],
+          "javaCompatibility": "21",
+          "required": true,
+          "availability": "catalogued-not-bundled",
+          "source": "IDOL NiFi Ingest 26.3 package",
+          "installRequirements": [
+            "InstallDir/extensions/",
+            "API NAR first",
+            "single minor version only"
+          ],
+          "path": null,
+          "present": false
+        },
+        {
+          "filename": "idol-nifi-connector-filesystem-nar-26.3.0-nifi2.nar",
+          "narVersion": "26.3.0-nifi2",
+          "groupId": "idol.nifi",
+          "artifactId": "idol-nifi-connector-filesystem-nar",
+          "sha256": null,
+          "processors": [
+            "idol.nifi.connector.GetFileSystem"
+          ],
+          "controllerServices": [],
+          "dependencies": [
+            "idol-nifi-framework-api-nar-26.3.0-nifi2.nar"
+          ],
+          "javaCompatibility": "21",
+          "required": true,
+          "availability": "catalogued-not-bundled",
+          "source": "IDOL File System Connector 26.3 package",
+          "installRequirements": [
+            "InstallDir/extensions/",
+            "API NAR first",
+            "single minor version only"
+          ],
+          "path": null,
+          "present": false
+        }
+      ],
+      "processors": [
+        "idol.nifi.processor.PutIDOL",
+        "idol.nifi.connector.GetFileSystem",
+        "idol.nifi.processor.GenerateDocumentFlowFile",
+        "idol.nifi.processor.ExecuteDocumentPython",
+        "idol.nifi.processor.KeyViewFilter",
+        "idol.nifi.processor.Eduction",
+        "idol.nifi.processor.RouteDocument"
+      ],
+      "controllerServices": [
+        "idol.nifi.service.IdolSslConfigServiceImpl",
+        "idol.nifi.service.IdolLicenseServiceImpl",
+        "idol.nifi.service.IdolLoggingServiceImpl",
+        "idol.nifi.service.IdolFlowFileServiceImpl"
+      ],
+      "dependencies": [
+        "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+        "IDOL License Server",
+        "IDOL Content ACI"
+      ],
+      "javaCompatibility": "21",
+      "dockerImage": "microfocusidolserver/nifi-ver2-full:26.3",
+      "notes": "Binaries are proprietary and are not shipped in this repository. The 26.3 Docker image already contains these NARs. Loose files may be added under nars/26.3/ for local install mode."
+    }
+  },
+  "controllerServices": [
+    {
+      "name": "IdolSslConfigServiceImpl",
+      "type": "idol.nifi.service.IdolSslConfigServiceImpl",
+      "properties": {
+        "CheckCertificate": "${IDOL_TLS_ENABLED}",
+        "AuthorityCertificates": "#{IDOL_CA_CERTS}",
+        "Method": "Negotiate"
+      }
+    },
+    {
+      "name": "IdolLicenseServiceImpl",
+      "type": "idol.nifi.service.IdolLicenseServiceImpl",
+      "properties": {
+        "License Server Hostname": "#{IDOL_LICENSE_HOST}",
+        "License Server Port": "#{IDOL_LICENSE_PORT}",
+        "SSL Config Service": "IdolSslConfigServiceImpl"
+      }
+    }
+  ],
+  "parameterContext": {
+    "name": "aci-command-params",
+    "parameters": [
+      {
+        "name": "IDOL_HOST",
+        "sensitive": false,
+        "env": "IDOL_HOST"
+      },
+      {
+        "name": "IDOL_ACI_PORT",
+        "sensitive": false,
+        "env": "IDOL_PORT"
+      },
+      {
+        "name": "IDOL_INDEX",
+        "sensitive": false,
+        "env": "IDOL_INDEX"
+      },
+      {
+        "name": "IDOL_USERNAME",
+        "sensitive": false,
+        "env": "IDOL_USERNAME"
+      },
+      {
+        "name": "IDOL_PASSWORD",
+        "sensitive": true,
+        "env": "IDOL_PASSWORD"
+      },
+      {
+        "name": "SOURCE_PATH",
+        "sensitive": false,
+        "env": "IDOL_INGEST_PATH"
+      },
+      {
+        "name": "IDOL_LICENSE_HOST",
+        "sensitive": false,
+        "env": "IDOL_LICENSE_HOST"
+      },
+      {
+        "name": "IDOL_LICENSE_PORT",
+        "sensitive": false,
+        "env": "IDOL_LICENSE_PORT"
+      },
+      {
+        "name": "IDOL_TLS_ENABLED",
+        "sensitive": false,
+        "env": "IDOL_TLS_ENABLED"
+      },
+      {
+        "name": "IDOL_CA_CERTS",
+        "sensitive": false,
+        "env": "IDOL_SSL_AUTHORITY_CERTS"
+      }
+    ]
+  },
+  "sensitiveProperties": [
+    "IDOL_PASSWORD",
+    "IDOL_TOKEN",
+    "LLM_API_KEY",
+    "NIFI_PASSWORD"
+  ],
+  "requiredEnvironmentVariables": [
+    "IDOL_HOST",
+    "IDOL_PORT",
+    "IDOL_INDEX",
+    "IDOL_LICENSE_HOST",
+    "IDOL_LICENSE_PORT",
+    "IDOL_INGEST_PATH",
+    "IDOL_TLS_ENABLED",
+    "IDOL_SSL_AUTHORITY_CERTS"
+  ],
+  "exampleConfiguration": {
+    "IDOL_HOST": "idol-content",
+    "IDOL_ACI_PORT": "9000",
+    "IDOL_INDEX": "documents",
+    "SOURCE_PATH": "/idol-ingest",
+    "IDOL_LICENSE_HOST": "idol-licenseserver",
+    "IDOL_LICENSE_PORT": "20000",
+    "IDOL_TLS_ENABLED": "false"
+  },
+  "validationRules": [
+    "NiFi version matches the resolved NAR profile",
+    "IDOL version matches the resolved NAR profile",
+    "Required NAR files belong to that profile only",
+    "PutIDOL / GetFileSystem / IDOL controller services exist in the selected NAR",
+    "Sensitive values use parameters or environment variables",
+    "TLS properties set when IDOL_TLS_ENABLED is true"
+  ],
+  "deploymentRequirements": {
+    "local": "Resolver may copy NARs into NIFI_EXTENSIONS_DIR when deployment mode is local.",
+    "external": "Treat NAR installation as an environment prerequisite. Report missing artifacts; do not push NARs remotely."
+  },
+  "flowDefinitionVersion": "1.0"
+}

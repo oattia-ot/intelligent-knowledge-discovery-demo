@@ -1,0 +1,7 @@
+{
+  "enabled": false,
+  "mode": "none",
+  "uiUrl": "/nifi-ai/?theme=fta",
+  "directUiUrl": "http://localhost:27120/?theme=fta",
+  "orchestratorUrl": "http://localhost:27110"
+}

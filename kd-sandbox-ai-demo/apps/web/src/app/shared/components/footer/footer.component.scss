@@ -1,0 +1,24 @@
+.kd-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--kd-border);
+  background: var(--kd-surface);
+  color: var(--kd-text-muted);
+}
+
+.kd-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 1.5rem;
+  text-align: center;
+}
+
+.kd-footer__line {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.kd-footer__meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  color: var(--kd-primary-dark);
+}

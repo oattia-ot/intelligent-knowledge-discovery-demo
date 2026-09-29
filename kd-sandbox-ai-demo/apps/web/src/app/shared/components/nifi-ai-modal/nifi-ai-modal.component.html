@@ -1,0 +1,46 @@
+@if (enabled()) {
+  <div
+    class="nifi-ai-overlay"
+    role="presentation"
+    [class.nifi-ai-overlay--hidden]="!open()"
+    [attr.aria-hidden]="open() ? null : 'true'"
+    (click)="close()"
+  >
+    <div
+      class="nifi-ai-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'nav.nifiAi' | t"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="nifi-ai-modal__header">
+        <div class="nifi-ai-modal__titles">
+          <span class="nifi-ai-modal__mark" aria-hidden="true"></span>
+          <div>
+            <h2 class="nifi-ai-modal__title">{{ 'nav.nifiAi' | t }}</h2>
+            <p class="nifi-ai-modal__subtitle">{{ 'nav.nifiAiHint' | t }}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="nifi-ai-modal__close"
+          (click)="close()"
+          [attr.aria-label]="'nav.nifiAiClose' | t"
+          [title]="'nav.nifiAiClose' | t"
+        >
+          ×
+        </button>
+      </header>
+      <div class="nifi-ai-modal__accent" aria-hidden="true"></div>
+      <div class="nifi-ai-modal__body">
+        <iframe
+          class="nifi-ai-modal__frame"
+          [src]="frameSrc()"
+          title="NiFi AI assistant"
+          referrerpolicy="no-referrer-when-downgrade"
+          (load)="onFrameLoad($event)"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+}

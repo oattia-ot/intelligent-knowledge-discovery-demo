@@ -1,0 +1,44 @@
+{
+  "name": "kd-enterprise-search",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/dev.mjs --host 0.0.0.0 --port 4200",
+    "start:local": "node scripts/dev.mjs --host localhost --port 4200",
+    "start:vite-proxy": "node scripts/dev.mjs --host 0.0.0.0 --port 4200",
+    "probe-server": "node scripts/probe-server.mjs",
+    "build": "ng build",
+    "test": "ng test",
+    "proxy:smoke": "node scripts/proxy-smoke.mjs",
+    "generate:config": "node scripts/generate-config.mjs",
+    "serve": "bash ./serve.sh",
+    "sync-config": "bash ./sync-config.sh",
+    "restart": "bash ./restart.sh",
+    "verify:nifi-ai": "node scripts/verify-nifi-ai-refactor.mjs"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0",
+    "npm": ">=10"
+  },
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "handlebars": "^4.7.9",
+    "marked": "^18.0.9",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.20",
+    "@angular/cli": "^21.2.20",
+    "@angular/compiler-cli": "^21.2.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

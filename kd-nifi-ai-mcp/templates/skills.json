@@ -1,0 +1,4 @@
+{
+  "$comment": "Sidebar Skills. Add via the UI (POST /lookup/skills) or drop files in custom/ with kind=skill. Seeds belong here only \u2014 never in ui/index.html.",
+  "items": []
+}

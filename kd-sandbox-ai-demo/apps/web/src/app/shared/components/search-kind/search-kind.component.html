@@ -1,0 +1,14 @@
+<div class="search-kind" role="tablist" aria-label="Search in">
+  @for (opt of options; track opt.id) {
+    <button
+      type="button"
+      class="op-btn search-kind__btn"
+      role="tab"
+      [class.search-kind__btn--active]="value === opt.id" [class.op-btn--active]="value === opt.id"
+      [attr.aria-selected]="value === opt.id"
+      (click)="select(opt.id)"
+    >
+      {{ opt.label }}
+    </button>
+  }
+</div>

@@ -1,0 +1,110 @@
+<div class="home-page">
+  <div class="home-hero">
+    <div class="home-hero__brand" aria-hidden="true">
+      @if (logoUrl()) {
+        <img class="home-hero__logo" [src]="logoUrl()!" alt="" />
+      } @else {
+        <span class="home-hero__mark"></span>
+      }
+    </div>
+    <h1 class="home-hero__title">{{ appTitle() }}</h1>
+    <p class="home-hero__subtitle">{{ appName() }}</p>
+
+    <form class="home-search" (ngSubmit)="onSubmit()" role="search">
+      <label class="sr-only" for="home-q">Search query</label>
+      <div class="home-search__shell">
+        <span class="home-search__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+          </svg>
+        </span>
+        <input
+          id="home-q"
+          type="search"
+          name="query"
+          class="home-search__input"
+          [placeholder]="
+            expertsEnabled() && searchKind === 'experts'
+              ? 'Find experts in a topic…'
+              : 'Search knowledge bases…'
+          "
+          [(ngModel)]="query"
+          (input)="onQueryInput()"
+          (focus)="onQueryFocus()"
+          (blur)="onQueryBlur()"
+          (keydown)="onQueryKeydown($event)"
+          [attr.aria-autocomplete]="'list'"
+          [attr.aria-expanded]="suggestionsOpen()"
+          [attr.aria-controls]="'home-suggest-list'"
+          [attr.aria-activedescendant]="
+            suggestionIndex() >= 0 ? 'home-suggest-' + suggestionIndex() : null
+          "
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          role="combobox"
+          autofocus
+        />
+        <button
+          type="submit"
+          class="home-search__submit"
+          [disabled]="!query.trim()"
+          title="Search"
+          aria-label="Search"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        @if (suggestionsOpen() && (suggestions().length > 0 || suggestionsLoading())) {
+          <ul
+            id="home-suggest-list"
+            class="home-suggest"
+            role="listbox"
+            aria-label="Search suggestions"
+          >
+            @if (suggestionsLoading() && suggestions().length === 0) {
+              <li class="home-suggest__status" role="option" aria-disabled="true">
+                Looking up suggestions…
+              </li>
+            }
+            @for (item of suggestions(); track item.text; let i = $index) {
+              <li
+                [id]="'home-suggest-' + i"
+                class="home-suggest__item"
+                role="option"
+                [attr.aria-selected]="suggestionIndex() === i"
+                [class.home-suggest__item--active]="suggestionIndex() === i"
+                (mousedown)="selectSuggestion(item, $event)"
+              >
+                <span
+                  class="home-suggest__text"
+                  [innerHTML]="suggestionLabelHtml(item.text)"
+                ></span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </form>
+
+    @if (expertsEnabled()) {
+      <div class="home-hero__kind">
+        <app-search-kind [(value)]="searchKind" />
+      </div>
+    }
+
+    <p class="home-hero__hint">
+      Type a term or question, pick a suggestion, then Search or press Enter.
+    </p>
+  </div>
+
+  @if (recommendationsOnHome()) {
+    <div class="home-recs">
+      <app-my-recommendations variant="panel" />
+    </div>
+  }
+</div>

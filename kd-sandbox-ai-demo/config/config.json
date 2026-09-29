@@ -1,0 +1,113 @@
+{
+  "$schema_comment": "Default application configuration for Knowledge Discovery Sandbox Demo. Loaded at startup; UI overrides persist in localStorage.",
+  "protocol": "https",
+  "baseHost": "",
+  "upstreamHost": "20.86.52.130",
+  "$upstreamHost_comment": "Backend ACI host used by the dev proxy (proxy.conf.mjs) and to derive viewUpstreamOrigin / endpoint-health.json testUrls. Edit this to change the backend IP without touching upstream.config.mjs. Overridden per-run by the KD_UPSTREAM_HOST env var if set. Takes effect on the next `npm start` / `serve.sh` (they run sync-config.sh -> generate-config.mjs first).",
+  "components": [
+    {
+      "key": "communityApiUrl",
+      "label": "Community",
+      "description": "Login / session — UserRead, SecurityInfo.",
+      "path": "/community",
+      "upstream": "community:9033",
+      "statusPort": null,
+      "$statusPort_comment": "Optional. GetStatus is a service action, not an ACI action — IDOL requires it be sent to the component's Service port, which is often a different port than the ACI port above (9033) that normal Community calls and the a=admin browser UI use. Leave null to keep testing the same port as 'upstream'. Find the real value in the Community .cfg file's [Service] ServicePort= setting, or on the Overview/Status page inside a=admin, then set it here (a plain number, e.g. 9034) and re-run npm start / serve.sh to pick it up."
+    },
+    {
+      "key": "contentApiUrl",
+      "label": "Content",
+      "description": "Search / Query against the Content engine.",
+      "path": "/content",
+      "upstream": "content:9103"
+    },
+    {
+      "key": "contentIndexApiUrl",
+      "label": "Content Index",
+      "description": "Index port — DRECREATEDBASE and other DRE* admin calls (not the ACI query port).",
+      "path": "/content/Index",
+      "upstream": "content:9104"
+    },
+    {
+      "key": "qmsApiUrl",
+      "label": "QMS",
+      "description": "Query Manipulation Server — TypeAhead, AQG.",
+      "path": "/qms",
+      "upstream": "qms:16000"
+    },
+    {
+      "key": "viewApiUrl",
+      "label": "View",
+      "description": "Document preview / View component.",
+      "path": "/view",
+      "upstream": "view:9083"
+    },
+    {
+      "key": "viewServerUrl",
+      "label": "View Server",
+      "description": "View ACI actions (same-origin path).",
+      "path": "/view",
+      "upstream": "view:9083"
+    },
+    {
+      "key": "viewUpstreamOrigin",
+      "label": "View Upstream Origin",
+      "description": "Absolute origin for nested View iframe rewrites (xECM).",
+      "path": "",
+      "absoluteDefault": "https://20.86.52.130:9083",
+      "$absoluteDefault_comment": "Left empty on purpose. Runtime and generate-config.mjs compose https://{upstreamHost}:{port from upstream}. Do not hardcode an IP here.",
+      "kind": "origin",
+      "upstream": "view:9083"
+    },
+    {
+      "key": "agentstoreApiUrl",
+      "label": "Agentstore",
+      "description": "Agentstore component.",
+      "path": "/agentstore",
+      "upstream": "agentstore:20050"
+    },
+    {
+      "key": "categoryApiUrl",
+      "label": "Category",
+      "description": "Category component.",
+      "path": "/category",
+      "upstream": "category:9060"
+    },
+    {
+      "key": "answerServerApiUrl",
+      "label": "AnswerServer",
+      "description": "NLQA Answer Server.",
+      "path": "/answerserver",
+      "upstream": "answerserver:12000"
+    },
+    {
+      "key": "gatewayOrigin",
+      "label": "Gateway origin",
+      "description": "SPA + reverse-proxy origin. Leave blank to use the current page origin.",
+      "path": "",
+      "kind": "origin",
+      "upstream": "",
+      "absoluteDefault": "",
+      "family": "app"
+    },
+    {
+      "key": "nifiCanvasUrl",
+      "label": "NiFi canvas",
+      "description": "Apache NiFi canvas UI. Independent of IDOL services — excluded from Apply to All.",
+      "path": "/nifi",
+      "kind": "origin",
+      "family": "nifi",
+      "upstream": "nifi:27111",
+      "absoluteDefault": "https://20.86.52.130:27111"
+    }
+  ],
+  "business": {
+    "defaultOperator": "AND",
+    "defaultSummaryType": "Context",
+    "defaultSummaryLength": 200
+  },
+  "localization": {
+    "defaultLanguage": "en",
+    "defaultTheme": "kd-gold"
+  }
+}

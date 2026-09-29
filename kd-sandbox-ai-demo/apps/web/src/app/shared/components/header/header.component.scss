@@ -1,0 +1,259 @@
+.kd-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--kd-header-bg, var(--kd-navy));
+  color: var(--kd-header-fg, #fff);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.kd-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: var(--kd-header-height);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  padding-inline-end: 1rem;
+}
+
+.kd-header__brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.kd-header__home {
+  flex-shrink: 0;
+}
+
+.kd-header__brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: inherit;
+  }
+}
+
+.kd-header__mark {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--kd-radius-sm);
+  background: linear-gradient(145deg, var(--kd-primary-light), var(--kd-primary-dark));
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+.kd-header__logo {
+  flex-shrink: 0;
+  height: 36px;
+  width: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.kd-header__titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.kd-header__title-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-align: start;
+
+  &:hover .kd-header__title-edit-icon {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--kd-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.kd-header__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kd-header__title-edit-icon {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+
+.kd-header__title-input {
+  width: min(20rem, 55vw);
+  max-width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--kd-header-fg, #fff);
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0.2rem 0.5rem;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: var(--kd-primary);
+    box-shadow: 0 0 0 2px rgba(59, 158, 255, 0.35);
+  }
+}
+
+.kd-header__subtitle {
+  font-size: 0.72rem;
+  color: var(--kd-header-muted, var(--kd-primary-light));
+  opacity: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kd-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.kd-header__user {
+  order: 2;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.95;
+  max-width: 10rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.35rem 0.15rem 0.35rem 0.65rem;
+  border-inline-start: 1px solid color-mix(in srgb, var(--kd-header-fg, #fff) 28%, transparent);
+  color: var(--kd-header-fg, #fff);
+  margin-inline-start: 0.15rem;
+  text-align: end;
+}
+
+/* Unified header actions — Chat, Settings, Sign out; username sits at far right */
+.kd-header__nav {
+  order: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.hdr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.15rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--kd-header-fg, #fff) 28%, transparent);
+  background: color-mix(in srgb, var(--kd-header-fg, #fff) 12%, transparent);
+  color: var(--kd-header-fg, #fff);
+  font-size: 0.8rem;
+  font-weight: 650;
+  font-family: inherit;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--kd-header-fg, #fff) 20%, transparent);
+    border-color: color-mix(in srgb, var(--kd-header-fg, #fff) 40%, transparent);
+    color: var(--kd-header-fg, #fff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--kd-primary);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: color-mix(in srgb, var(--kd-primary) 35%, transparent);
+    border-color: var(--kd-primary);
+    color: var(--kd-header-fg, #fff);
+  }
+
+  &--emphasis {
+    background: var(--kd-primary);
+    border-color: var(--kd-primary-dark);
+    color: var(--kd-on-primary, #0b2c4d);
+
+    &:hover {
+      background: var(--kd-primary-dark);
+      color: var(--kd-header-fg, #fff);
+    }
+  }
+}
+
+.hdr-btn__icon {
+  display: inline-flex;
+  opacity: 0.95;
+}
+
+.kd-header__accent {
+  height: 3px;
+  background: linear-gradient(90deg, var(--kd-primary), var(--kd-primary-light), var(--kd-primary));
+}
+
+@media (max-width: 720px) {
+  .kd-header__user {
+    max-width: 5.5rem;
+    font-size: 0.72rem;
+  }
+
+  .hdr-btn__label {
+    /* keep Sign out label; hide others if tight */
+  }
+
+  .hdr-btn:not(.hdr-btn--emphasis) .hdr-btn__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  .hdr-btn:not(.hdr-btn--emphasis) {
+    padding: 0.45rem 0.55rem;
+    position: relative;
+  }
+
+  .kd-header__title-input {
+    width: min(12rem, 42vw);
+  }
+}

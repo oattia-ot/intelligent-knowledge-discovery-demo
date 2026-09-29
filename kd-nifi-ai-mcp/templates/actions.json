@@ -1,0 +1,4 @@
+{
+  "$comment": "Sidebar Actions. Add via the UI (POST /lookup/actions) or drop files in custom/ with kind=action. Seeds belong here only \u2014 never in ui/index.html.",
+  "items": []
+}

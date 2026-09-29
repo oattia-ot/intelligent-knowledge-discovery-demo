@@ -1,0 +1,8 @@
+{
+  "$schema_comment": "Expertise locator (Community ProfileUser + Agentstore Profile Query). enabled is the admin gate: false hides every experts control (including Settings). When true, header Settings → Experts search On/Off can hide the rest of the UI for the session. displayFields are Community UserRead values shown on expert cards (custom fields like telephone, or system fields uid / lastloggedin).",
+  "enabled": true,
+  "displayFields": [
+    { "name": "telephone", "label": "Telephone", "type": "tel" },
+    { "name": "lastloggedin", "label": "Last signed in", "type": "unix" }
+  ]
+}

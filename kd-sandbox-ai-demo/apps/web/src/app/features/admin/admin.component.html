@@ -1,0 +1,260 @@
+<div class="admin-page">
+  <p class="admin-back">
+    <a class="admin-back__link" [attr.href]="backHref()" (click)="goBack($event)">
+      {{ backLabel() }}
+    </a>
+  </p>
+
+  <header class="admin-hero">
+    <h1 class="admin-hero__title">Administration</h1>
+    <p class="admin-hero__subtitle">
+      Restricted to the Community role <strong>{{ adminRole }}</strong>.
+      Changes here write the JSON config files on the server so every user
+      sees them after reload.
+    </p>
+
+    <form class="admin-find" role="search" (ngSubmit)="$event.preventDefault()">
+      <label class="sr-only" for="admin-q">Find an admin setting</label>
+      <div class="admin-find__shell">
+        <span class="admin-find__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+          </svg>
+        </span>
+        <input
+          id="admin-q"
+          type="search"
+          name="query"
+          class="admin-find__input"
+          placeholder="Find an admin setting…"
+          [(ngModel)]="query"
+          (ngModelChange)="onFilterChange($event)"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          autofocus
+        />
+      </div>
+    </form>
+  </header>
+
+  @if (visibleSections().length === 0) {
+    <p class="admin-empty" role="status">
+      No admin settings match “{{ filter().trim() }}”.
+    </p>
+  }
+
+  <div class="admin-list">
+    @if (sectionVisible('document-viewer')) {
+      <section class="admin-card" aria-labelledby="admin-document-viewer">
+        <h2 id="admin-document-viewer" class="admin-card__title">
+          Document viewer
+        </h2>
+        <p class="admin-card__hint">
+          Select the viewer used for document previews. This is a deployment
+          setting (not a per-user preference). The saved default is
+          <strong>{{ configuredViewerMode() || 'loading…' }}</strong>.
+        </p>
+
+        <ul class="admin-chips" role="listbox" aria-label="Document viewer">
+          <li>
+            <button
+              type="button"
+              class="admin-chip"
+              role="option"
+              [attr.aria-selected]="viewerMode() === 'universal'"
+              [class.admin-chip--active]="viewerMode() === 'universal'"
+              [disabled]="!viewerConfigReady()"
+              (click)="setViewerMode('universal', $event)"
+            >
+              Universal Viewing
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="admin-chip"
+              role="option"
+              [attr.aria-selected]="viewerMode() === 'redaction'"
+              [class.admin-chip--active]="viewerMode() === 'redaction'"
+              [disabled]="!viewerConfigReady()"
+              (click)="setViewerMode('redaction', $event)"
+            >
+              Role-based redaction
+            </button>
+          </li>
+        </ul>
+
+        <h3 class="admin-card__title admin-card__title--sub">
+          Role-based snippet redaction
+        </h3>
+        <p class="admin-card__hint">
+          Redact search, promoted-result, and recommendation snippets using the
+          signed-in user's roles. This operates independently of the document
+          viewer. The saved default is
+          <strong>
+            {{ configuredSnippetRedactionEnabled() ? 'On' : 'Off' }}
+          </strong>.
+        </p>
+        <ul
+          class="admin-chips"
+          role="listbox"
+          aria-label="Role-based snippet redaction"
+        >
+          <li>
+            <button
+              type="button"
+              class="admin-chip"
+              role="option"
+              [attr.aria-selected]="snippetRedactionEnabled()"
+              [class.admin-chip--active]="snippetRedactionEnabled()"
+              [disabled]="!viewerConfigReady()"
+              (click)="setSnippetRedactionEnabled(true, $event)"
+            >
+              On
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="admin-chip"
+              role="option"
+              [attr.aria-selected]="!snippetRedactionEnabled()"
+              [class.admin-chip--active]="!snippetRedactionEnabled()"
+              [disabled]="!viewerConfigReady()"
+              (click)="setSnippetRedactionEnabled(false, $event)"
+            >
+              Off
+            </button>
+          </li>
+        </ul>
+
+        <div class="admin-endpoint-fields">
+          <label class="admin-endpoint-field">
+            <span>Universal Viewing base endpoint</span>
+            <input
+              type="text"
+              [ngModel]="universalApiUrl()"
+              (ngModelChange)="setUniversalViewerEndpoint($event)"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="url"
+              spellcheck="false"
+            />
+          </label>
+          <label class="admin-endpoint-field">
+            <span>Role-based redaction base endpoint</span>
+            <input
+              type="text"
+              [ngModel]="redactionApiUrl()"
+              (ngModelChange)="setRedactionViewerEndpoint($event)"
+              [ngModelOptions]="{ standalone: true }"
+              autocomplete="url"
+              spellcheck="false"
+            />
+          </label>
+          <p class="admin-card__hint">
+            Role-based snippet redaction uses
+            <code>{{ snippetRedactionEndpoint() }}</code>.
+          </p>
+        </div>
+
+        <div class="admin-endpoints">
+          <div class="admin-endpoint">
+            <div>
+              <h3 class="admin-endpoint__title">Universal Viewing</h3>
+              <code class="admin-endpoint__url">{{ universalViewerEndpoint() }}</code>
+            </div>
+            <button
+              type="button"
+              class="admin-test-button"
+              [disabled]="universalTest().state === 'testing'"
+              (click)="testUniversalViewer($event)"
+            >
+              {{ universalTest().state === 'testing' ? 'Testing…' : 'Test endpoint' }}
+            </button>
+            @if (universalTest().message) {
+              <p
+                class="admin-endpoint__result"
+                [class.admin-endpoint__result--success]="universalTest().state === 'success'"
+                [class.admin-endpoint__result--error]="universalTest().state === 'error'"
+                aria-live="polite"
+              >
+                {{ universalTest().message }}
+              </p>
+            }
+          </div>
+
+          <div class="admin-endpoint">
+            <div>
+              <h3 class="admin-endpoint__title">Role-based redaction</h3>
+              <code class="admin-endpoint__url">
+                {{ redactionViewerEndpoint() || 'Loading configuration…' }}
+              </code>
+            </div>
+            <button
+              type="button"
+              class="admin-test-button"
+              [disabled]="
+                !viewerConfigReady() || redactionTest().state === 'testing'
+              "
+              (click)="testRedactionViewer($event)"
+            >
+              {{ redactionTest().state === 'testing' ? 'Testing…' : 'Test endpoint' }}
+            </button>
+            @if (redactionTest().message) {
+              <p
+                class="admin-endpoint__result"
+                [class.admin-endpoint__result--success]="redactionTest().state === 'success'"
+                [class.admin-endpoint__result--error]="redactionTest().state === 'error'"
+                aria-live="polite"
+              >
+                {{ redactionTest().message }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="admin-save-bar">
+          <button
+            type="button"
+            class="admin-save-button"
+            [disabled]="!viewerConfigReady() || saveStatus().state === 'saving'"
+            (click)="saveToServer($event)"
+          >
+            {{ saveStatus().state === 'saving' ? 'Saving…' : 'Save to server' }}
+          </button>
+          <button
+            type="button"
+            class="admin-secondary-button"
+            [disabled]="!dirty() || saveStatus().state === 'saving'"
+            (click)="revertDraft($event)"
+          >
+            Discard changes
+          </button>
+          <button
+            type="button"
+            class="admin-secondary-button"
+            [disabled]="saveStatus().state === 'saving'"
+            (click)="reloadFromServer($event)"
+          >
+            Reload from server
+          </button>
+          @if (dirty()) {
+            <span class="admin-save-bar__dirty">Unsaved changes</span>
+          }
+        </div>
+        @if (saveStatus().message) {
+          <p
+            class="admin-save-result"
+            [class.admin-save-result--success]="saveStatus().state === 'success'"
+            [class.admin-save-result--error]="saveStatus().state === 'error'"
+            aria-live="polite"
+          >
+            {{ saveStatus().message }}
+          </p>
+        }
+      </section>
+    }
+  </div>
+</div>

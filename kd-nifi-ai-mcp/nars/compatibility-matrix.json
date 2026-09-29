@@ -1,0 +1,42 @@
+{
+  "$comment": "Data-driven compatibility matrix. Resolver never infers a NAR from a similar filename. Artifact names follow the OpenText NiFi Ingest documented pattern (idol-nifi-*-nar-<version>.nar) plus the nifi2 qualifier required for NiFi 2.x. Proprietary .nar binaries are not bundled; drop them into the matching version directory.",
+  "schemaVersion": "1.0",
+  "profiles": [
+    {
+      "id": "idol-26.2-nifi-26.2",
+      "directory": "26.2",
+      "idolVersion": "26.2",
+      "nifiVersion": "26.2",
+      "narVersion": "26.2.0-nifi2",
+      "apacheNifiVersions": ["2.0.0", "2.1.0", "2.2.0", "2.3.0", "2.4.0"],
+      "supportedIdolVersions": ["26.2", "26.2.0"],
+      "supportedNifiVersions": ["26.2", "26.2.0"],
+      "dockerImage": "microfocusidolserver/nifi-ver2-full:26.2",
+      "javaCompatibility": "21",
+      "source": "OpenText IDOL NiFi Ingest 26.2 zip / nifi-ver2-full:26.2 image",
+      "installRequirements": [
+        "Copy idol-nifi-framework-api-nar-26.2.0-nifi2.nar into NiFi extensions/ first",
+        "Wait for NiFi to unpack the API NAR before adding other 26.2 NARs",
+        "Do not place 26.3 NARs in the same extensions directory"
+      ]
+    },
+    {
+      "id": "idol-26.3-nifi-26.3",
+      "directory": "26.3",
+      "idolVersion": "26.3",
+      "nifiVersion": "26.3",
+      "narVersion": "26.3.0-nifi2",
+      "apacheNifiVersions": ["2.9.0"],
+      "supportedIdolVersions": ["26.3", "26.3.0"],
+      "supportedNifiVersions": ["26.3", "26.3.0"],
+      "dockerImage": "microfocusidolserver/nifi-ver2-full:26.3",
+      "javaCompatibility": "21",
+      "source": "OpenText IDOL NiFi Ingest 26.3 zip / nifi-ver2-full:26.3 image (NiFi UI 2.9.0 in this project)",
+      "installRequirements": [
+        "Copy idol-nifi-framework-api-nar-26.3.0-nifi2.nar into NiFi extensions/ first",
+        "Wait for NiFi to unpack the API NAR before adding other 26.3 NARs",
+        "Do not place 26.2 NARs in the same extensions directory"
+      ]
+    }
+  ]
+}
