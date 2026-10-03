@@ -1,0 +1,38 @@
+{
+  "$schema_comment": "Result link rules. strategy templateId loads assets/templates/result-url/{templateId}.hbs with Handlebars. fields = context keys (must be on Query PrintFields where possible).",
+  "default": {
+    "strategy": "templateId",
+    "templateId": "default-reference",
+    "fields": ["DREREFERENCE", "DRETITLE", "NAME", "DATABASE", "TITLE"],
+    "openIn": "new_tab",
+    "label": "Open"
+  },
+  "byDatabase": {
+    "CAD": {
+      "strategy": "templateId",
+      "templateId": "default-reference",
+      "fields": ["DREREFERENCE", "DRETITLE", "NAME", "DATABASE"],
+      "openIn": "new_tab",
+      "label": "Open document"
+    },
+    "WRC": {
+      "strategy": "templateId",
+      "templateId": "default-reference",
+      "fields": ["DREREFERENCE", "DRETITLE", "NAME", "DATABASE"],
+      "openIn": "new_tab",
+      "label": "Open document"
+    },
+    "xECM": {
+      "strategy": "templateId",
+      "templateId": "xecm-overview",
+      "fields": ["NODE_ID", "DREREFERENCE", "NAME", "DRETITLE", "DATABASE"],
+      "openIn": "new_tab",
+      "label": "Open in xECM",
+      "fallback": {
+        "strategy": "templateId",
+        "templateId": "default-reference",
+        "fields": ["DREREFERENCE", "NAME", "DRETITLE"]
+      }
+    }
+  }
+}

@@ -1,0 +1,210 @@
+.home-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 2rem 1.25rem 4rem;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 20%, rgba(197, 165, 114, 0.16), transparent 65%),
+    var(--kd-bg);
+}
+
+.home-hero {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.home-hero__brand {
+  margin-bottom: 1rem;
+}
+
+.home-hero__logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 18px;
+  box-shadow: var(--kd-shadow);
+}
+
+.home-hero__mark {
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--kd-primary-light), var(--kd-primary-dark));
+  box-shadow: var(--kd-shadow);
+}
+
+.home-hero__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 700;
+  color: var(--kd-navy);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.home-hero__subtitle {
+  margin: 0.4rem 0 1.75rem;
+  font-size: 0.95rem;
+  color: var(--kd-text-muted);
+}
+
+.home-search {
+  width: 100%;
+}
+
+.home-search__shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--kd-surface);
+  border: 1px solid var(--kd-border);
+  border-radius: 999px;
+  box-shadow: var(--kd-shadow);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--kd-primary);
+    box-shadow: 0 0 0 3px rgba(197, 165, 114, 0.28), var(--kd-shadow-lg);
+  }
+}
+
+.home-search__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-left: 1.1rem;
+  color: var(--kd-text-muted);
+}
+
+.home-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.95rem 0.75rem;
+  font-size: 1.05rem;
+  color: var(--kd-text);
+  outline: none;
+
+  /* Hide native search clear on some browsers so layout stays clean */
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+}
+
+.home-search__submit {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0.25rem 0.3rem 0.25rem 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--kd-primary);
+  color: var(--kd-on-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease, color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--kd-primary-dark);
+    color: var(--kd-inverse-fg);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+/* TypeAhead — grows with items (max 5); no scrollbar */
+.home-suggest {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  margin: 0;
+  padding: 0.4rem 0;
+  list-style: none;
+  text-align: left;
+  background: var(--kd-surface);
+  border: 1px solid var(--kd-border);
+  border-radius: 1rem;
+  box-shadow: var(--kd-shadow-lg);
+  overflow: hidden;
+}
+
+.home-suggest__item {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1.15rem;
+  cursor: pointer;
+  font-size: 0.98rem;
+  color: var(--kd-navy);
+  line-height: 1.35;
+
+  &:hover,
+  &--active {
+    background: rgba(197, 165, 114, 0.16);
+  }
+}
+
+.home-suggest__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .suggest-match {
+  font-weight: 700;
+  color: var(--kd-primary-dark);
+}
+
+.home-suggest__status {
+  padding: 0.65rem 1.15rem;
+  font-size: 0.88rem;
+  color: var(--kd-text-muted);
+}
+
+.home-hero__hint {
+  margin: 1.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--kd-text-muted);
+  max-width: 28rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 480px) {
+  .home-search__input {
+    font-size: 1rem;
+    padding: 0.85rem 0.5rem;
+  }
+
+  .home-search__icon {
+    padding-left: 0.85rem;
+  }
+}
+
+.home-hero__kind {
+  margin-top: 1rem;
+}
+
+.home-recs {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 2.25rem;
+}

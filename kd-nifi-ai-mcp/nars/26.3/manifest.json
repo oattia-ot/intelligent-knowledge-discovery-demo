@@ -1,0 +1,91 @@
+{
+  "id": "idol-26.3-nifi-26.3",
+  "idolVersion": "26.3",
+  "nifiVersion": "26.3",
+  "narVersion": "26.3.0-nifi2",
+  "apacheNifiVersions": ["2.9.0"],
+  "supportedIdolVersions": ["26.3", "26.3.0"],
+  "supportedNifiVersions": ["26.3", "26.3.0"],
+  "javaCompatibility": "21",
+  "dockerImage": "microfocusidolserver/nifi-ver2-full:26.3",
+  "source": "OpenText Knowledge Discovery NiFi Ingest 26.3 / microfocusidolserver/nifi-ver2-full:26.3 (project-documented NiFi UI 2.9.0)",
+  "notes": "Binaries are proprietary and are not shipped in this repository. The 26.3 Docker image already contains these NARs. Loose files may be added under nars/26.3/ for local install mode.",
+  "dependencies": [
+    "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+    "IDOL License Server",
+    "IDOL Content ACI"
+  ],
+  "installRequirements": [
+    "InstallDir/extensions/",
+    "API NAR first",
+    "single minor version only"
+  ],
+  "controllerServices": [
+    "idol.nifi.service.IdolSslConfigServiceImpl",
+    "idol.nifi.service.IdolLicenseServiceImpl",
+    "idol.nifi.service.IdolLoggingServiceImpl",
+    "idol.nifi.service.IdolFlowFileServiceImpl"
+  ],
+  "processors": [
+    "idol.nifi.processor.PutIDOL",
+    "idol.nifi.connector.GetFileSystem",
+    "idol.nifi.processor.GenerateDocumentFlowFile",
+    "idol.nifi.processor.ExecuteDocumentPython",
+    "idol.nifi.processor.KeyViewFilter",
+    "idol.nifi.processor.Eduction",
+    "idol.nifi.processor.RouteDocument"
+  ],
+  "artifacts": [
+    {
+      "filename": "idol-nifi-framework-api-nar-26.3.0-nifi2.nar",
+      "narVersion": "26.3.0-nifi2",
+      "groupId": "idol.nifi",
+      "artifactId": "idol-nifi-framework-api-nar",
+      "sha256": null,
+      "required": true,
+      "availability": "catalogued-not-bundled",
+      "processors": [],
+      "controllerServices": [
+        "idol.nifi.service.IdolSslConfigServiceImpl",
+        "idol.nifi.service.IdolLicenseServiceImpl",
+        "idol.nifi.service.IdolLoggingServiceImpl",
+        "idol.nifi.service.IdolFlowFileServiceImpl"
+      ],
+      "dependencies": [],
+      "source": "IDOL NiFi Ingest 26.3 package"
+    },
+    {
+      "filename": "idol-nifi-framework-nar-26.3.0-nifi2.nar",
+      "narVersion": "26.3.0-nifi2",
+      "groupId": "idol.nifi",
+      "artifactId": "idol-nifi-framework-nar",
+      "sha256": null,
+      "required": true,
+      "availability": "catalogued-not-bundled",
+      "processors": [
+        "idol.nifi.processor.PutIDOL",
+        "idol.nifi.processor.GenerateDocumentFlowFile",
+        "idol.nifi.processor.ExecuteDocumentPython",
+        "idol.nifi.processor.KeyViewFilter",
+        "idol.nifi.processor.Eduction",
+        "idol.nifi.processor.RouteDocument"
+      ],
+      "controllerServices": [],
+      "dependencies": ["idol-nifi-framework-api-nar-26.3.0-nifi2.nar"],
+      "source": "IDOL NiFi Ingest 26.3 package"
+    },
+    {
+      "filename": "idol-nifi-connector-filesystem-nar-26.3.0-nifi2.nar",
+      "narVersion": "26.3.0-nifi2",
+      "groupId": "idol.nifi",
+      "artifactId": "idol-nifi-connector-filesystem-nar",
+      "sha256": null,
+      "required": true,
+      "availability": "catalogued-not-bundled",
+      "processors": ["idol.nifi.connector.GetFileSystem"],
+      "controllerServices": [],
+      "dependencies": ["idol-nifi-framework-api-nar-26.3.0-nifi2.nar"],
+      "source": "IDOL File System Connector 26.3 package"
+    }
+  ]
+}

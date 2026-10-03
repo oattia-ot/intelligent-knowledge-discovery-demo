@@ -1,0 +1,165 @@
+name: ${COMPOSE_PROJECT_NAME:-kd-nifi-ai-mcp}
+
+x-common: &common
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  networks:
+    - nifi-ext
+  restart: unless-stopped
+
+services:
+  nifi:
+    <<: *common
+    image: ${NIFI_IMAGE:-microfocusidolserver/nifi-ver2-full:26.3}
+    profiles: ["create-nifi"]
+    environment:
+      SINGLE_USER_CREDENTIALS_USERNAME: ${NIFI_USERNAME:-admin}
+      SINGLE_USER_CREDENTIALS_PASSWORD: ${NIFI_PASSWORD:-OpenText2026!}
+      NIFI_WEB_HTTPS_PORT: 8443
+      NIFI_WEB_HTTPS_HOST: 0.0.0.0
+      NIFI_WEB_PROXY_HOST: localhost:8443,127.0.0.1:8443,localhost:27111,127.0.0.1:27111,localhost:27113,127.0.0.1:27113,nifi:8443,${NIFI_PROXY_HOST_LIST:-}
+      NIFI_WEB_PROXY_CONTEXT_PATH: /nifi,/idol-nifi
+      NIFI_SENSITIVE_PROPS_KEY: ${NIFI_SENSITIVE_PROPS_KEY:-kdNifiSensitiveKey32chars!!}
+    ports:
+      - "${NIFI_TLS_HOST_PORT:-27113}:8443"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'true'"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+
+  nifi-proxy:
+    <<: *common
+    build: ./nifi-proxy
+    environment:
+      NIFI_UPSTREAM: ${NIFI_UPSTREAM:-idol-nifi:8443}
+      NIFI_TLS_SERVER_NAME: ${NIFI_TLS_SERVER_NAME:-localhost}
+      NIFI_PROXY_CONTEXT_PATH: ${NIFI_PROXY_CONTEXT_PATH:-}
+      NIFI_PROXY_HOST_PORT: ${NIFI_PROXY_HOST_PORT:-27111}
+      NIFI_UI_REDIRECT_PORT: ${NIFI_UI_REDIRECT_PORT:-27111}
+    ports:
+      - "${NIFI_PROXY_HOST_PORT:-27111}:8443"
+
+  mcp-server:
+    <<: *common
+    build: ./mcp-server
+    environment:
+      NIFI_API_BASE: ${NIFI_API_BASE:-http://nifi-proxy:8080/nifi-api}
+      NIFI_BASE_URL: ${NIFI_BASE_URL:-${NIFI_API_BASE:-http://nifi-proxy:8080/nifi-api}}
+      NIFI_API_BASES: ${NIFI_API_BASES:-http://nifi-proxy:8080/nifi-api,https://idol-nifi:8443/nifi-api}
+      NIFI_EXTERNAL_API: ${NIFI_EXTERNAL_API:-}
+      NIFI_USERNAME: ${NIFI_USERNAME:-admin}
+      NIFI_PASSWORD: ${NIFI_PASSWORD:?Set NIFI_PASSWORD. The lab default is rejected.}
+      NIFI_VERIFY_SSL: ${NIFI_VERIFY_SSL:-false}
+      NIFI_TLS_SERVER_NAME: ${NIFI_TLS_SERVER_NAME:-localhost}
+      NIFI_PROXY_CONTEXT_PATH: ${NIFI_PROXY_CONTEXT_PATH:-}
+      NIFI_PROXY_HOST_PORT: ${NIFI_PROXY_HOST_PORT:-27111}
+      NIFI_UI_REDIRECT_PORT: ${NIFI_UI_REDIRECT_PORT:-27111}
+      NIFI_WAIT_SECONDS: ${NIFI_WAIT_SECONDS:-45}
+      MCP_TRANSPORT: sse
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8000
+      NIFI_READONLY: "false"
+      IDOL_VERSION: ${IDOL_VERSION:-}
+      NIFI_VERSION: ${NIFI_VERSION:-}
+      IDOL_NAR_VERSION: ${IDOL_NAR_VERSION:-}
+      IDOL_NAR_REPOSITORY: ${IDOL_NAR_REPOSITORY:-/nars}
+      IDOL_NAR_PATH: ${IDOL_NAR_PATH:-/nars}
+      NAR_VALIDATION_ENABLED: ${NAR_VALIDATION_ENABLED:-true}
+      NIFI_DEPLOYMENT_MODE: ${NIFI_LOCATION:-external}
+      NIFI_EXTENSIONS_DIR: ${NIFI_EXTENSIONS_DIR:-}
+    volumes:
+      - ./nars:/nars:ro
+    # MCP stays on the docker network. Do not publish :27115 to the host.
+    expose:
+      - "8000"
+
+  ai-gateway:
+    <<: *common
+    build: ../gateway
+    environment:
+      GATEWAY_API_TOKEN: ${GATEWAY_API_TOKEN:?Set GATEWAY_API_TOKEN}
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:?Set GATEWAY_SHARED_SECRET}
+      GATEWAY_ENFORCE: ${GATEWAY_ENFORCE:-true}
+      ANSWER_SERVER_URL: ${ANSWER_SERVER_URL:-http://answerserver:12000}
+      ANSWER_SYSTEM_NAME: ${ANSWER_SYSTEM_NAME:-MyAnswerSystem}
+      ORCHESTRATOR_URL: http://ai-orchestrator:8080
+      TOOL_ALLOWLIST: /app/tool_allowlist.json
+      AUDIT_PATH: /data/audit.jsonl
+    volumes:
+      - gateway-audit:/data
+    ports:
+      - "${GATEWAY_HOST_PORT:-27100}:8080"
+    depends_on:
+      - ai-orchestrator
+
+  ai-orchestrator:
+    <<: *common
+    build: ./ai-orchestrator
+    environment:
+      NIFI_API_BASE: ${NIFI_API_BASE:-http://nifi-proxy:8080/nifi-api}
+      NIFI_BASE_URL: ${NIFI_BASE_URL:-${NIFI_API_BASE:-http://nifi-proxy:8080/nifi-api}}
+      NIFI_API_BASES: ${NIFI_API_BASES:-http://nifi-proxy:8080/nifi-api,https://idol-nifi:8443/nifi-api}
+      NIFI_EXTERNAL_API: ${NIFI_EXTERNAL_API:-}
+      NIFI_USERNAME: ${NIFI_USERNAME:-admin}
+      NIFI_PASSWORD: ${NIFI_PASSWORD:?Set NIFI_PASSWORD. The lab default is rejected.}
+      NIFI_VERIFY_SSL: ${NIFI_VERIFY_SSL:-false}
+      NIFI_TLS_SERVER_NAME: ${NIFI_TLS_SERVER_NAME:-localhost}
+      NIFI_PROXY_CONTEXT_PATH: ${NIFI_PROXY_CONTEXT_PATH:-}
+      NIFI_PROXY_HOST_PORT: ${NIFI_PROXY_HOST_PORT:-27111}
+      NIFI_UI_REDIRECT_PORT: ${NIFI_UI_REDIRECT_PORT:-27111}
+      MCP_SERVER_URL: ${MCP_SERVER_URL:-http://mcp-server:8000/sse}
+      GATEWAY_ENFORCE: ${GATEWAY_ENFORCE:-true}
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:?Set GATEWAY_SHARED_SECRET}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_BASE_URLS: ${OLLAMA_BASE_URLS:-}
+      OLLAMA_HOST_PORT: ${OLLAMA_HOST_PORT:-27134}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      KD_TEMPLATES_DIR: /app/templates
+      IDOL_HOST: ${IDOL_HOST:-idol-content}
+      IDOL_PORT: ${IDOL_PORT:-9100}
+      IDOL_LICENSE_HOST: ${IDOL_LICENSE_HOST:-idol-licenseserver}
+      IDOL_LICENSE_PORT: ${IDOL_LICENSE_PORT:-20000}
+      IDOL_VERSION: ${IDOL_VERSION:-}
+      NIFI_VERSION: ${NIFI_VERSION:-}
+      IDOL_NAR_VERSION: ${IDOL_NAR_VERSION:-}
+      IDOL_NAR_REPOSITORY: ${IDOL_NAR_REPOSITORY:-/nars}
+      IDOL_NAR_PATH: ${IDOL_NAR_PATH:-/nars}
+      NAR_VALIDATION_ENABLED: ${NAR_VALIDATION_ENABLED:-true}
+      NIFI_DEPLOYMENT_MODE: ${NIFI_LOCATION:-external}
+    volumes:
+      - ./templates:/app/templates
+      - ./nars:/nars:ro
+      - ./mcp-server/nar:/app/nar:ro
+    ports:
+      - "${ORCHESTRATOR_HOST_PORT:-27110}:8080"
+    depends_on:
+      - mcp-server
+
+  ui:
+    <<: *common
+    build: ./ui
+    environment:
+      ORCHESTRATOR_HOST_PORT: ${ORCHESTRATOR_HOST_PORT:-27110}
+      ORCHESTRATOR_PUBLIC_URL: ${ORCHESTRATOR_PUBLIC_URL:-http://localhost:27110}
+      ORCHESTRATOR_INTERNAL_URL: ${ORCHESTRATOR_INTERNAL_URL:-http://ai-orchestrator:8080}
+      GATEWAY_PUBLIC_URL: ${GATEWAY_PUBLIC_URL:-http://localhost:27100}
+    ports:
+      - "${UI_HOST_PORT:-27120}:80"
+    depends_on:
+      - ai-orchestrator
+
+  ollama:
+    <<: *common
+    image: ollama/ollama:latest
+    profiles: ["create-ollama"]
+    ports:
+      - "${OLLAMA_HOST_PORT:-27134}:11434"
+
+networks:
+  nifi-ext:
+    name: ${NIFI_DOCKER_NETWORK:-idol-demo-network}
+    external: ${NIFI_DOCKER_NETWORK_EXTERNAL:-true}
+
+volumes:
+  gateway-audit:

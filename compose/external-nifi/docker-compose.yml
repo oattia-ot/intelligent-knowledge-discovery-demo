@@ -1,0 +1,23 @@
+# Distinct Compose project for pointing the NiFi AI stack at an *already
+# running* NiFi (IDOL demo, another host, etc.).
+#
+# Project name is pinned so it never collides with a local
+# kd-nifi-ai-mcp deployment (which uses project name `kd-nifi-ai-mcp`).
+#
+# This file does NOT start Apache NiFi. It reuses the services defined
+# in ../../kd-nifi-ai-mcp/docker-compose.yml and relies on .env values
+# written by init.sh / start.sh --nifi-url.
+#
+# Usage (normally invoked by ../../init.sh):
+#   docker compose -p kd-nifi-ai-mcp-ext --env-file ../../kd-nifi-ai-mcp/.env \
+#     -f ../../kd-nifi-ai-mcp/docker-compose.yml \
+#     -f docker-compose.override.yml \
+#     up -d --build
+
+name: kd-nifi-ai-mcp-ext
+
+include:
+  - path: ../../kd-nifi-ai-mcp/docker-compose.yml
+
+# The included file already has the nifi service behind profile "create-nifi".
+# External mode never enables that profile, so no second NiFi is created.

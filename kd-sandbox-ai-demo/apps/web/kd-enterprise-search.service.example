@@ -1,0 +1,56 @@
+[Unit]
+Description=KD Enterprise Search (Angular ng serve via serve.sh)
+Documentation=file:///opt/TAX_GOV_AE/docs/RUNBOOK.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Prefer a non-root user that owns the app tree and can run Node.
+# Change User=/Group= to match your host (e.g. ubuntu, ec2-user).
+User=ubuntu
+Group=ubuntu
+
+# Load APP_DIR / NODE_BIN_DIR from this file
+EnvironmentFile=-/etc/default/kd-enterprise-search
+
+# Working directory must contain serve.sh
+WorkingDirectory=/opt/TAX_GOV_AE/apps/web
+
+# Ensure node/npm from nvm or NODE_BIN_DIR are on PATH
+Environment=NODE_ENV=development
+# PATH is extended in ExecStartPre via a wrapper-friendly Environment —
+# override NODE_BIN_DIR in /etc/default/kd-enterprise-search for nvm installs.
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+# Optional: if you set NODE_BIN_DIR in the env file, systemd does not expand
+# variables inside Environment= from EnvironmentFile for PATH easily on all
+# versions — the install script writes a concrete PATH. Fallback ExecStart:
+ExecStart=/bin/bash -lc 'set -euo pipefail; \
+  if [[ -f /etc/default/kd-enterprise-search ]]; then set -a; source /etc/default/kd-enterprise-search; set +a; fi; \
+  APP_DIR="${APP_DIR:-/opt/TAX_GOV_AE/apps/web}"; \
+  cd "$APP_DIR"; \
+  if [[ -n "${NODE_BIN_DIR:-}" ]]; then export PATH="${NODE_BIN_DIR}:$PATH"; fi; \
+  if [[ -n "${NODE_BIN:-}" ]]; then export PATH="$(dirname "$NODE_BIN"):$PATH"; fi; \
+  if [[ -f "$HOME/.nvm/nvm.sh" ]]; then source "$HOME/.nvm/nvm.sh"; nvm use 22 >/dev/null 2>&1 || nvm use default >/dev/null 2>&1 || true; fi; \
+  exec ./serve.sh'
+
+# Graceful stop: ng serve responds to SIGINT/SIGTERM
+KillMode=control-group
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Logs → journald (journalctl -u kd-enterprise-search -f)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=kd-enterprise-search
+
+# Hardening (dev server — keep moderate)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

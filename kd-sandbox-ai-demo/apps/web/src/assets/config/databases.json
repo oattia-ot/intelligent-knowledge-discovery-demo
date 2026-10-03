@@ -1,0 +1,84 @@
+{
+  "$schema_comment": "Pre-configured IDOL databases for KD Enterprise Search. Copied to Angular assets at build time.",
+  "defaultScope": "all",
+  "databases": [
+    {
+      "id": "Archive",
+      "databaseMatch": "Archive",
+      "label": "Archive",
+      "defaultSelected": true,
+      "description": "Archive — 0 documents",
+      "titleFields": [
+        "DRETITLE",
+        "TITLE",
+        "NAME"
+      ],
+      "referenceStrategy": "drereference"
+    },
+    {
+      "id": "Default",
+      "databaseMatch": "Default",
+      "label": "Default",
+      "defaultSelected": true,
+      "description": "Default — 0 documents",
+      "titleFields": [
+        "DRETITLE",
+        "TITLE",
+        "NAME"
+      ],
+      "referenceStrategy": "drereference"
+    },
+    {
+      "id": "ExportCompliance",
+      "databaseMatch": "ExportCompliance",
+      "label": "ExportCompliance",
+      "defaultSelected": true,
+      "description": "ExportCompliance — 7 documents",
+      "titleFields": [
+        "DRETITLE",
+        "TITLE",
+        "NAME"
+      ],
+      "referenceStrategy": "drereference"
+    },
+    {
+      "id": "IAEA",
+      "databaseMatch": "IAEA",
+      "label": "IAEA",
+      "defaultSelected": true,
+      "description": "IAEA — 6 documents",
+      "titleFields": [
+        "DRETITLE",
+        "TITLE",
+        "NAME"
+      ],
+      "referenceStrategy": "drereference"
+    },
+    {
+      "id": "Retail",
+      "databaseMatch": "Retail",
+      "label": "Retail",
+      "defaultSelected": true,
+      "description": "Retail — 18 documents",
+      "titleFields": [
+        "DRETITLE",
+        "TITLE",
+        "NAME"
+      ],
+      "referenceStrategy": "drereference"
+    },
+    {
+      "id": "TAKAM",
+      "databaseMatch": "TAKAM",
+      "label": "TAKAM",
+      "defaultSelected": true,
+      "description": "TAKAM — 26 documents",
+      "titleFields": [
+        "DRETITLE",
+        "TITLE",
+        "NAME"
+      ],
+      "referenceStrategy": "drereference"
+    }
+  ]
+}

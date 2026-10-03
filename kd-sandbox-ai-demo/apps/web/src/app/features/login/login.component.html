@@ -1,0 +1,111 @@
+<div class="login-page" [class.login-page--settings-open]="settingsUi.open()">
+  <div class="login-card" [class.login-card--dimmed]="settingsUi.open()">
+    <div class="login-card__accent" aria-hidden="true"></div>
+
+    <div class="login-card__body">
+      <div class="login-card__brand">
+        @if (logoUrl()) {
+          <img class="login-card__logo" [src]="logoUrl()!" alt="" />
+        } @else {
+          <span class="login-card__mark" aria-hidden="true"></span>
+        }
+        <div>
+          <h1 class="login-card__title">{{ appTitle() }}</h1>
+          <p class="login-card__subtitle">{{ 'login.subtitle' | t }}</p>
+        </div>
+      </div>
+
+      @if (preflight.phase() === 'checking') {
+        <div class="login-card__health login-card__health--checking" role="status">
+          <span class="login-card__spinner" aria-hidden="true"></span>
+          <div>
+            <strong>{{ 'login.preflight.checking' | t }}</strong>
+            <p>{{ 'login.preflight.checkingDetail' | t }}</p>
+          </div>
+        </div>
+      }
+
+      @if (preflight.phase() === 'ok') {
+        <div class="login-card__health login-card__health--ok" role="status">
+          {{ 'login.preflight.ok' | t }}
+        </div>
+      }
+
+      @if (preflight.phase() === 'skipped') {
+        <div class="login-card__health login-card__health--ok" role="status">
+          {{ 'login.preflight.stub' | t }}
+        </div>
+      }
+
+      @if (preflight.phase() === 'down') {
+        <div class="login-card__health login-card__health--down" role="alert">
+          <strong>{{ 'login.preflight.down' | t }}</strong>
+          <p>
+            @if (preflight.reason() === 'spaFallback') {
+              {{ 'login.preflight.spaFallback' | t }}
+            } @else {
+              {{ 'login.preflight.downDetail' | t }}
+            }
+          </p>
+          @if (preflight.message()) {
+            <p class="login-card__health-tech">{{ preflight.message() }}</p>
+          }
+          <div class="login-card__health-actions">
+            <button type="button" class="login-form__submit login-form__submit--secondary" (click)="retryPreflight()">
+              {{ 'login.preflight.retry' | t }}
+            </button>
+            <button type="button" class="login-form__submit" (click)="openSettings()">
+              {{ 'login.preflight.settings' | t }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (error()) {
+        <div class="login-card__error" role="alert">{{ error() }}</div>
+      }
+
+      <form class="login-form" (ngSubmit)="onSubmit()" novalidate>
+        <label class="login-form__field">
+          <span>{{ 'login.username' | t }}</span>
+          <input
+            type="text"
+            name="username"
+            autocomplete="username"
+            [(ngModel)]="username"
+            [disabled]="loading() || !preflight.allowLogin()"
+            required
+          />
+        </label>
+
+        <label class="login-form__field">
+          <span>{{ 'login.password' | t }}</span>
+          <input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            [(ngModel)]="password"
+            [disabled]="loading() || !preflight.allowLogin()"
+            required
+          />
+        </label>
+
+        <button
+          type="submit"
+          class="login-form__submit"
+          [disabled]="loading() || !preflight.allowLogin() || preflight.phase() === 'checking'"
+        >
+          @if (loading()) {
+            {{ 'login.submitting' | t }}
+          } @else if (preflight.phase() === 'checking') {
+            {{ 'login.preflight.checking' | t }}
+          } @else if (!preflight.allowLogin()) {
+            {{ 'login.preflight.unavailable' | t }}
+          } @else {
+            {{ 'login.submit' | t }}
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KD NiFi assistant</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #111827;
+      --side: 300px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: var(--side) 1fr;
+      grid-template-rows: 56px 1fr auto auto;
+      grid-template-areas:
+        "side head"
+        "side thread"
+        "side composer"
+        "side activity";
+    }
+    header {
+      grid-area: head;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--panel);
+    }
+    header strong { font-size: 14px; }
+    header span { font-size: 12px; color: var(--muted); margin-left: 8px; }
+    aside {
+      grid-area: side;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      overflow: auto;
+      padding: 16px 12px 24px;
+    }
+    aside h2 {
+      margin: 16px 0 8px;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    aside h2:first-child { margin-top: 0; }
+    .nav-section { margin: 0 0 8px; }
+    .nav-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; border: 1px solid var(--line); background: #f9fafb;
+      border-radius: 10px; padding: 8px 10px; font: inherit; cursor: pointer;
+      font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--ink); margin: 0 0 6px;
+    }
+    .nav-toggle .count {
+      min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+      background: var(--accent); color: #fff; font-size: 10px; letter-spacing: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: auto; margin-right: 8px; text-transform: none;
+    }
+    .nav-toggle .chev { color: var(--muted); font-size: 11px; }
+    .nav-body { display: none; padding: 0 0 6px; }
+    .nav-section.open .nav-body { display: block; }
+    .nav-group-label {
+      margin: 8px 2px 4px; font-size: 10px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .side-btn .need { color: #b45309; font-size: 10px; display: block; margin-top: 2px; }
+    .side-btn, #send, .ghost, .app-btn {
+      display: block; width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font: inherit;
+      cursor: pointer;
+      margin: 0 0 6px;
+    }
+    .side-btn small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .side-btn:hover, .ghost:hover, .app-btn:hover { border-color: #111; }
+    header button, .ghost, .app-btn { width: auto; display: inline-flex; align-items: center; justify-content: center; }
+    .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .app-btn {
+      margin: 0;
+      min-height: 2.15rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .app-btn--primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .app-btn--primary:hover { border-color: #000; }
+    menu .app-btn { margin: 0; }
+    .activity-toolbar .app-btn {
+      min-height: 1.7rem;
+      padding: 0.25rem 0.7rem;
+      font-size: 11px;
+    }
+    #thread { grid-area: thread; overflow: auto; }
+    #log { max-width: 760px; margin: 0 auto; padding: 24px 20px 12px; }
+    .empty { color: var(--muted); }
+    .empty h1 { font-size: 22px; color: var(--ink); margin: 0 0 8px; }
+    .msg { display: grid; gap: 4px; margin: 16px 0; }
+    .msg .role { font-size: 12px; color: var(--muted); }
+    .msg.user .body {
+      background: var(--accent); color: #fff; display: inline-block;
+      padding: 10px 14px; border-radius: 16px 16px 4px 16px;
+    }
+    .msg.bot .body { white-space: pre-wrap; }
+    .plan {
+      margin-top: 10px; border: 1px solid var(--line); border-radius: 12px;
+      padding: 12px 14px; background: var(--panel);
+    }
+    .plan pre { margin: 8px 0 0; white-space: pre-wrap; font-size: 12px; color: var(--muted); }
+    .composer {
+      grid-area: composer;
+      border-top: 1px solid var(--line); background: var(--panel); padding: 12px 16px 16px;
+    }
+    .composer-inner { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+      font: inherit; resize: none; min-height: 44px; max-height: 160px;
+    }
+    #send { background: var(--accent); color: #fff; border-color: var(--accent); width: auto; }
+    #send:disabled { opacity: .4; }
+    dialog.sap-dialog {
+      border: 1px solid #e2d9c8; border-radius: 12px; padding: 0;
+      width: min(640px, 94vw); max-height: 86vh; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(11, 44, 77, 0.18);
+    }
+    dialog.sap-dialog form { padding: 0; display: flex; flex-direction: column; gap: 0; }
+    dialog.sap-dialog .kd-sap-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; min-height: 56px; padding: 0.7rem 1rem; background: #0b2c4d; color: #fff;
+    }
+    dialog.sap-dialog .kd-sap-head h2 { margin: 0; font-size: 1.02rem; font-weight: 700; color: #fff; }
+    dialog.sap-dialog .kd-sap-head p { margin: 0.15rem 0 0; font-size: 0.72rem; color: rgba(255,255,255,.88); }
+    dialog.sap-dialog .kd-sap-accent { height: 3px; background: linear-gradient(90deg, #c5a572, #e0cfa3, #c5a572); }
+    dialog.sap-dialog .kd-param-body { padding: 0.95rem 1.15rem 0.4rem; background: #f7f5f1; }
+    dialog.sap-dialog label { display: block; font-size: 0.78rem; font-weight: 600; margin: 0.6rem 0 0.25rem; color: #0b2c4d; }
+    dialog.sap-dialog input, dialog.sap-dialog textarea.field {
+      width: 100%; box-sizing: border-box; border: 1px solid #d7c9a8; border-radius: 8px;
+      padding: 0.5rem 0.65rem; background: #fff;
+    }
+    dialog.sap-dialog menu {
+      display: flex; justify-content: flex-end; gap: 0.5rem;
+      margin: 0; padding: 0.8rem 1.15rem 1rem; background: #fff; border-top: 1px solid #e2d9c8;
+    }
+    dialog.sap-dialog .app-btn { border-radius: 999px; background: #fff; border: 1px solid #cfc3a6; color: #0b2c4d; }
+    dialog.sap-dialog .app-btn--primary { background: #0b2c4d; border-color: #0b2c4d; color: #fff; }
+    dialog.sap-dialog::backdrop {
+      background: rgba(11, 44, 77, 0.5);
+      backdrop-filter: blur(2px);
+    }
+    dialog.sap-dialog .kd-sap-x {
+      width: 2.1rem; height: 2.1rem; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.12); color: #fff;
+      font-size: 1.3rem; line-height: 1; cursor: pointer; flex: 0 0 auto;
+    }
+    dialog.sap-dialog .kd-param-body { overflow: auto; max-height: 52vh; }
+    dialog.sap-dialog .kd-param-error {
+      display: none; margin: 0 1.15rem 0.4rem; color: #a51d2d; font-size: 0.78rem;
+    }
+    dialog.sap-dialog .kd-param-error.is-on { display: block; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .test-row { display: flex; align-items: center; gap: 10px; }
+    .test-result {
+      display: none; align-items: center; justify-content: center;
+      width: 1.75rem; height: 1.75rem; border-radius: 999px;
+      flex: 0 0 1.75rem;
+    }
+    .test-result.is-ok, .test-result.is-bad, .test-result.is-wait { display: inline-flex; }
+    .test-result.is-ok { background: #e8f5e9; color: #15803d; }
+    .test-result.is-bad { background: #fdecea; color: #b91c1c; }
+    .test-result.is-wait { background: #fef3c7; color: #a16207; }
+    .test-result svg { width: 1.05rem; height: 1.05rem; display: none; }
+    .test-result.is-ok .icon-ok { display: block; }
+    .test-result.is-bad .icon-bad { display: block; }
+    .conn-title { margin: 0; font-size: 16px; }
+    .conn-title.is-ok { color: #15803d; }
+    .conn-title.is-bad { color: #b91c1c; }
+    .conn-title.is-wait { color: #a16207; }
+    .conn-banner {
+      display: none;
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 650;
+      white-space: pre-wrap;
+    }
+    .conn-banner.is-ok, .conn-banner.is-bad, .conn-banner.is-wait { display: block; }
+    .conn-banner.is-ok { background: #e8f5e9; color: #15803d; }
+    .conn-banner.is-bad { background: #fdecea; color: #b91c1c; }
+    .conn-banner.is-wait { background: #fef3c7; color: #a16207; }
+    #settingsBody {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      max-height: 220px;
+      overflow: auto;
+    }
+    #settingsBody.is-ok { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    #settingsBody.is-bad { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+    #settingsBody.is-wait { color: #a16207; border-color: #fcd34d; background: #fffbeb; }
+    #openSettings.is-ok { border-color: #15803d; color: #15803d; }
+    #openSettings.is-bad { border-color: #b91c1c; color: #b91c1c; }
+    html.theme-fta #openSettings.is-ok { border-color: #86efac; color: #bbf7d0; }
+    html.theme-fta #openSettings.is-bad { border-color: #fca5a5; color: #fecaca; }
+
+    menu { display: flex; gap: 8px; justify-content: flex-start; margin: 0; padding: 0; }
+    @media (max-width: 800px) {
+      body { grid-template-columns: 1fr; grid-template-areas: "head" "thread" "composer" "activity"; }
+      aside { display: none; }
+    }
+    html.theme-fta {
+      --bg: #f7f5f1;
+      --panel: #ffffff;
+      --ink: #1a1a1a;
+      --muted: #5c6670;
+      --line: #e2d9c8;
+      --accent: #0b2c4d;
+      --fta-primary: #c5a572;
+      --fta-navy: #0b2c4d;
+    }
+    html.theme-fta body {
+      font-family: Dubai, Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    html.theme-fta header {
+      background: var(--fta-navy);
+      color: #fff;
+      border-bottom: 0;
+    }
+    html.theme-fta header span { color: rgba(255,255,255,.88); }
+    html.theme-fta header .app-btn {
+      border-color: rgba(255,255,255,.28);
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border-radius: 999px;
+    }
+    html.theme-fta header .app-btn:hover {
+      background: rgba(255,255,255,.2);
+      border-color: rgba(255,255,255,.4);
+    }
+    html.theme-fta .app-btn--primary {
+      background: var(--fta-primary);
+      border-color: var(--fta-primary);
+      color: #0b2c4d;
+    }
+    html.theme-fta .app-btn--primary:hover {
+      background: #b3915f;
+      border-color: #b3915f;
+      color: #0b2c4d;
+    }
+    html.theme-fta .side-btn:hover, html.theme-fta .ghost:hover, html.theme-fta dialog .app-btn:hover { border-color: var(--fta-primary); }
+    html.theme-fta #send { background: var(--fta-navy); border-color: var(--fta-navy); }
+    html.theme-fta .msg.user .body { background: var(--fta-navy); }
+
+    .activity {
+      grid-area: activity;
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .activity-tab {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      padding: 8px 16px;
+      font: inherit;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .activity-tab:hover { background: var(--bg); }
+    .activity-tab-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .activity-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .activity-chevron { color: var(--muted); font-size: 11px; }
+    .activity-panel {
+      display: none;
+      flex-direction: column;
+      height: 220px;
+      border-top: 1px solid var(--line);
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .activity.open .activity-panel { display: flex !important; }
+    .activity-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: #94a3b8;
+      border-bottom: 1px solid #1e293b;
+    }
+    .activity-toolbar button {
+      border: 1px solid #334155;
+      background: transparent;
+      color: #cbd5e1;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font: inherit;
+      cursor: pointer;
+    }
+    #activityLog {
+      flex: 1;
+      overflow: auto;
+      margin: 0;
+      padding: 8px 12px 12px;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .alog-line { margin: 0 0 4px; }
+    .alog-time { color: #64748b; }
+    .alog-info { color: #93c5fd; }
+    .alog-ok { color: #86efac; }
+    .alog-warn { color: #fde68a; }
+    .alog-err { color: #fca5a5; }
+    html.theme-fta .activity-count { background: var(--fta-navy); }
+    html.theme-fta .activity-tab:hover { background: #f3efe6; }
+    @media (max-width: 800px) {
+      body { grid-template-areas: "head" "thread" "composer" "activity"; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search);
+        if (q.get("theme") === "fta" || q.get("embed") === "1" || window !== window.top) {
+          document.documentElement.classList.add("theme-fta");
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <aside>
+    <section class="nav-section open" data-section="actions">
+      <button type="button" class="nav-toggle" aria-expanded="true">
+        Action <span class="count" id="actionCount">0</span><span class="chev">▾</span>
+      </button>
+      <div class="nav-body" id="actions"></div>
+    </section>
+    <section class="nav-section" data-section="skills">
+      <button type="button" class="nav-toggle" aria-expanded="false">
+        Skills <span class="count" id="skillCount">0</span><span class="chev">▴</span>
+      </button>
+      <div class="nav-body" id="skills"></div>
+    </section>
+    <section class="nav-section" data-section="templates">
+      <button type="button" class="nav-toggle" aria-expanded="false">
+        Templates <span class="count" id="tplCount">0</span><span class="chev">▴</span>
+      </button>
+      <div class="nav-body">
+        <div id="templates"></div>
+        <button type="button" class="ghost" id="addTpl">+ Add template</button>
+      </div>
+    </section>
+  </aside>
+
+  <header>
+    <div class="header-left">
+      <button type="button" class="app-btn" id="homeBtn" title="Home">Home</button>
+      <div>
+        <strong>KD NiFi assistant</strong>
+        <span id="status">connecting…</span>
+      </div>
+    </div>
+    <button type="button" class="app-btn" id="openSettings">Connection</button>
+  </header>
+
+  <main id="thread">
+    <div id="log">
+      <div class="empty" id="empty">
+        <h1>Describe a flow or pick a skill</h1>
+        <p>Open <strong>Action</strong>, <strong>Skills</strong>, or <strong>Templates</strong> in the left rail. Skills include a sample prompt. If a field is missing, you will be asked to complete it before send.</p>
+      </div>
+    </div>
+  </main>
+
+  <div class="composer">
+    <div class="composer-inner">
+      <textarea id="input" rows="1" placeholder="Ask to inspect or build a NiFi / IDOL flow"></textarea>
+      <button type="button" id="send">Send</button>
+    </div>
+  </div>
+
+  <section class="activity" id="activity">
+    <button type="button" class="activity-tab" id="activityToggle" aria-expanded="false" aria-controls="activityPanel">
+      <span class="activity-tab-label">
+        Activity log
+        <span class="activity-count" id="activityCount">0</span>
+      </span>
+      <span class="activity-chevron" id="activityChevron">▴</span>
+    </button>
+    <div class="activity-panel" id="activityPanel" hidden>
+      <div class="activity-toolbar">
+        <span>Session events (requests, replies, connection checks)</span>
+        <span>
+          <button type="button" class="app-btn" id="activityClear">Clear</button>
+          <button type="button" class="app-btn" id="activityClose">Close</button>
+        </span>
+      </div>
+      <div id="activityLog" role="log" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <dialog id="settings" class="sap-dialog">
+    <form method="dialog">
+      <div class="kd-sap-head">
+        <div>
+          <h2 id="nifiConnTitle" class="conn-title">NiFi connection</h2>
+          <p>Connection parameters for the NiFi proxy. Same window as Complete SAP ingest.</p>
+        </div>
+        <button type="button" class="kd-sap-x" id="closeSettingsX" aria-label="Close">×</button>
+      </div>
+      <div class="kd-sap-accent"></div>
+      <div class="kd-param-body">
+        <p id="nifiConnBanner" class="conn-banner" role="status" aria-live="polite"></p>
+        <p class="hint">Target is set by container env (<code>NIFI_API_BASE</code>, user/password). Recreate <code>nifi-proxy</code> after changing <code>.env</code>. Canvas through the proxy: <code>https://HOST:27111/nifi</code>. Direct IDOL TLS: <code>https://HOST:8443/nifi</code>.</p>
+        <pre id="settingsBody" class="hint">loading…</pre>
+      </div>
+      <menu class="test-row">
+        <button type="button" class="app-btn" id="closeSettings" value="cancel">Cancel</button>
+        <button type="button" class="app-btn app-btn--primary" id="testConn">Test</button>
+        <span id="testResult" class="test-result" aria-live="polite" title="">
+          <svg class="icon-ok" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill="currentColor" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0z"/>
+          </svg>
+          <svg class="icon-bad" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill="currentColor" d="M5.3 5.3a1 1 0 0 1 1.4 0L10 8.6l3.3-3.3a1 1 0 1 1 1.4 1.4L11.4 10l3.3 3.3a1 1 0 0 1-1.4 1.4L10 11.4l-3.3 3.3a1 1 0 0 1-1.4-1.4L8.6 10 5.3 6.7a1 1 0 0 1 0-1.4z"/>
+          </svg>
+        </span>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="missingDlg" class="sap-dialog">
+    <form method="dialog" id="missingForm">
+      <div class="kd-sap-head">
+        <div>
+          <h2 id="missingTitle">Complete required fields</h2>
+          <p id="missingHint">Fill the parameters, then Continue.</p>
+        </div>
+        <button type="button" class="kd-sap-x" id="missingX" aria-label="Close">×</button>
+      </div>
+      <div class="kd-sap-accent"></div>
+      <div class="kd-param-body" id="missingFields"></div>
+      <p id="missingError" class="kd-param-error" role="alert"></p>
+      <menu>
+        <button class="app-btn" id="missingCancel" value="cancel">Cancel</button>
+        <button class="app-btn app-btn--primary" id="missingGo" value="default">Continue</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="tplDialog" class="sap-dialog">
+    <form method="dialog" id="tplForm">
+      <div class="kd-sap-head">
+        <div>
+          <h2>New flow template</h2>
+          <p>Same parameter window as Complete SAP ingest. Save, then click the new item to run it.</p>
+        </div>
+        <button type="button" class="kd-sap-x" id="tplX" aria-label="Close">×</button>
+      </div>
+      <div class="kd-sap-accent"></div>
+      <div class="kd-param-body">
+        <label>Title <input id="tplTitle" required placeholder="SharePoint ingest" /></label>
+        <label>Description <input id="tplDesc" placeholder="List files then send to IDOL" /></label>
+        <label>Prompt sent to chat
+          <textarea class="field" id="tplPrompt" rows="3" placeholder="Create a NiFi flow that uses {{sourcePath}}"></textarea>
+        </label>
+        <label>Needs <input id="tplNeeds" placeholder="sourcePath, idolHost" /></label>
+      </div>
+      <p id="tplError" class="kd-param-error" role="alert"></p>
+      <menu>
+        <button class="app-btn" id="tplCancel" value="cancel">Cancel</button>
+        <button class="app-btn app-btn--primary" id="tplSave" value="default">Continue</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="defaultDlg" class="sap-dialog">
+    <form method="dialog" id="defaultForm">
+      <div class="kd-sap-head">
+        <div>
+          <h2>Load default items?</h2>
+          <p>Same window as Complete SAP ingest. Applies kd-nifi-items-default.json.</p>
+        </div>
+        <button type="button" class="kd-sap-x" id="defaultX" aria-label="Close">×</button>
+      </div>
+      <div class="kd-sap-accent"></div>
+      <div class="kd-param-body">
+        <p>Load the default Actions, Skills, and Templates from kd-nifi-items-default.json? This replaces the current lists with the default set, including SAP ingest.</p>
+      </div>
+      <menu>
+        <button type="button" class="app-btn" id="defaultSkip">Not now</button>
+        <button type="button" class="app-btn app-btn--primary" id="defaultLoad">Load defaults</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script>
+    function isLoopbackHost(host) {
+      host = String(host || "").toLowerCase().replace(/^\[|\]$/g, "");
+      return !host || host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0" || host === "::1";
+    }
+    function hostOf(url) {
+      try { return new URL(url, location.href).hostname; } catch (_) { return ""; }
+    }
+    function resolveOrchestratorUrl() {
+      var configured = window.ORCHESTRATOR_URL || "";
+      var pageHost = location.hostname;
+      var pagePort = location.port;
+
+      // Opened as http://<ip>:27120/ — stay same-origin. Nginx on this
+      // container proxies /chat /health /settings to the orchestrator.
+      if (pagePort === "27120") {
+        return "";
+      }
+
+      // Explicit public URL from container env wins.
+      if (configured && !isLoopbackHost(hostOf(configured))) {
+        return configured;
+      }
+
+      // Remote browser on another port (e.g. :4200 overlay): use this host:27110.
+      if (!isLoopbackHost(pageHost)) {
+        var proto = location.protocol === "https:" ? "https:" : "http:";
+        return proto + "//" + pageHost + ":27110";
+      }
+
+      return configured || "http://localhost:27110";
+    }
+    const API = resolveOrchestratorUrl();
+    const STORE = "kd-nifi-custom-templates";
+
+    let ACTION_ITEMS = [];
+    let SKILL_ITEMS = [];
+    let TEMPLATE_ITEMS = [];
+
+    function fillPrompt(template, values) {
+      return String(template || "").replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
+        return (values && values[key] != null && values[key] !== "") ? String(values[key]) : "";
+      }).replace(/[ \t]+/g, " ").trim();
+    }
+    function missingKeys(item, values) {
+      return (item.required || []).filter(function (f) {
+        return !String((values && values[f.key]) || "").trim();
+      });
+    }
+    const logEl = document.getElementById("log");
+    const empty = document.getElementById("empty");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    const thread = document.getElementById("thread");
+    const templatesEl = document.getElementById("templates");
+    const activityRoot = document.getElementById("activity");
+    const activityPanel = document.getElementById("activityPanel");
+    const activityLogEl = document.getElementById("activityLog");
+    const activityCountEl = document.getElementById("activityCount");
+    const activityChevron = document.getElementById("activityChevron");
+    const activityEvents = [];
+
+    function setActivityOpen(open) {
+      activityRoot.classList.toggle("open", open);
+      activityPanel.hidden = !open;
+      document.getElementById("activityToggle").setAttribute("aria-expanded", open ? "true" : "false");
+      activityChevron.textContent = open ? "▾" : "▴";
+    }
+    function toggleActivity() {
+      setActivityOpen(!activityRoot.classList.contains("open"));
+    }
+    function trace(level, message, detail) {
+      const ts = new Date();
+      const stamp = ts.toISOString().slice(11, 23);
+      const line = { ts: ts.toISOString(), level: level || "info", message: String(message || ""), detail: detail || "" };
+      activityEvents.push(line);
+      const row = document.createElement("div");
+      row.className = "alog-line alog-" + (line.level === "ok" || line.level === "warn" || line.level === "err" ? line.level : "info");
+      const extra = line.detail ? "  " + (typeof line.detail === "string" ? line.detail : JSON.stringify(line.detail)) : "";
+      row.innerHTML = '<span class="alog-time"></span> <span class="alog-msg"></span>';
+      row.querySelector(".alog-time").textContent = stamp;
+      row.querySelector(".alog-msg").textContent = "[" + line.level + "] " + line.message + extra;
+      activityLogEl.appendChild(row);
+      activityLogEl.scrollTop = activityLogEl.scrollHeight;
+      activityCountEl.textContent = String(activityEvents.length);
+    }
+    document.getElementById("activityToggle").onclick = toggleActivity;
+    document.getElementById("activityClose").onclick = () => setActivityOpen(false);
+    document.getElementById("activityClear").onclick = () => {
+      activityEvents.length = 0;
+      activityLogEl.innerHTML = "";
+      activityCountEl.textContent = "0";
+      trace("info", "activity log cleared");
+    };
+    setActivityOpen(false);
+    trace("info", "session started", "orchestrator " + API);
+
+    const rawFetch = window.fetch.bind(window);
+    window.fetch = async function tracedFetch(input, init) {
+      const url = typeof input === "string" ? input : (input && input.url) || String(input);
+      const method = (init && init.method) || "GET";
+      const t0 = performance.now();
+      trace("info", method + " " + url);
+      try {
+        const res = await rawFetch(input, init);
+        const ms = Math.round(performance.now() - t0);
+        const lvl = res.ok ? "ok" : "warn";
+        trace(lvl, method + " " + url + " → " + res.status + " (" + ms + "ms)");
+        return res;
+      } catch (err) {
+        const ms = Math.round(performance.now() - t0);
+        trace("err", method + " " + url + " failed (" + ms + "ms)", String(err));
+        throw err;
+      }
+    };
+
+    function localTemplates() {
+      try { return JSON.parse(localStorage.getItem(STORE) || "[]"); }
+      catch { return []; }
+    }
+    function saveLocal(items) {
+      localStorage.setItem(STORE, JSON.stringify(items));
+    }
+
+    function templateRequired(t) {
+      const listed = (t.required_config || t.required || []).map(function (item) {
+        if (typeof item === "string") return { key: item, label: item.replace(/_/g, " "), placeholder: item };
+        return item;
+      });
+      if (listed.length) return listed;
+      const fromNeeds = String(t.needs || "")
+        .split(/[,;|]/)
+        .map(function (part) { return part.replace(/^needs:\s*/i, "").trim(); })
+        .filter(Boolean)
+        .map(function (key) { return { key: key, label: key.replace(/_/g, " "), placeholder: key }; });
+      if (fromNeeds.length) return fromNeeds;
+      const inferred = [];
+      const seen = {};
+      String(t.prompt || "").replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}|\$\{\s*([a-zA-Z0-9_]+)\s*\}|<<\s*([a-zA-Z0-9_]+)\s*>>/g, function (_, a, b, c) {
+        const key = a || b || c;
+        if (!key || seen[key]) return;
+        seen[key] = true;
+        inferred.push({ key: key, label: key.replace(/_/g, " "), placeholder: key });
+      });
+      return inferred;
+    }
+
+    function makeSideButton(item) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "side-btn";
+      b.dataset.prompt = item.prompt || item.title || "";
+      b.dataset.kind = item.kind || "template";
+      b.dataset.kdRunnable = "1";
+      if (item.custom) b.dataset.kdCreated = "1";
+      b.dataset.title = item.title || item.name || item.id || "Item";
+      const title = document.createElement("span");
+      title.textContent = item.title || item.id || "Item";
+      const small = document.createElement("small");
+      small.textContent = item.description || item.skill || item.prompt || "";
+      b.appendChild(title);
+      b.appendChild(small);
+      const req = item.required || templateRequired(item);
+      item.required = req;
+      if (req.length) {
+        b.dataset.params = req.map(function (f) { return f.key; }).join(", ");
+        const need = document.createElement("span");
+        need.className = "need";
+        need.textContent = "Needs: " + req.map(function (f) { return f.label || f.key; }).join(", ");
+        b.appendChild(need);
+      }
+      b.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        launchCatalogItem(item);
+      });
+      return b;
+    }
+
+    function renderList(el, items) {
+      el.innerHTML = "";
+      (items || []).forEach(function (item) {
+        item.required = templateRequired(item);
+        el.appendChild(makeSideButton(item));
+      });
+    }
+
+    function renderTemplates(items) {
+      templatesEl.innerHTML = "";
+      const groups = {};
+      const order = [];
+      (items || []).forEach(function (t) {
+        const g = t.group || (t.custom ? "custom" : "other");
+        if (!groups[g]) { groups[g] = []; order.push(g); }
+        groups[g].push(t);
+      });
+      order.forEach(function (g) {
+        const lab = document.createElement("div");
+        lab.className = "nav-group-label";
+        lab.textContent = g.replace(/-/g, " ");
+        templatesEl.appendChild(lab);
+        groups[g].forEach(function (t) {
+          t.required = templateRequired(t);
+          templatesEl.appendChild(makeSideButton(t));
+        });
+      });
+      document.getElementById("tplCount").textContent = String((items || []).length);
+    }
+
+    function renderCatalog() {
+      renderList(document.getElementById("actions"), ACTION_ITEMS);
+      renderList(document.getElementById("skills"), SKILL_ITEMS);
+      document.getElementById("actionCount").textContent = String(ACTION_ITEMS.length);
+      document.getElementById("skillCount").textContent = String(SKILL_ITEMS.length);
+    }
+
+    function asCatalogItem(raw, kind) {
+      raw = raw || {};
+      const req = raw.required && raw.required.length
+        ? raw.required
+        : (raw.required_config || []).map(function (key) {
+            return typeof key === "string"
+              ? { key: key, label: key.replace(/_/g, " "), placeholder: key }
+              : key;
+          });
+      return {
+        id: raw.id,
+        kind: raw.kind || kind,
+        title: raw.title || raw.name || raw.id || "Item",
+        name: raw.name || raw.title || raw.id,
+        description: raw.description || raw.skill || "",
+        prompt: raw.prompt || "",
+        skill: raw.skill,
+        needs: raw.needs || "",
+        required: req,
+        group: raw.group,
+        custom: !!raw.custom
+      };
+    }
+
+    let pendingLaunch = null;
+    function launchCatalogItem(item) {
+      const req = item.required || templateRequired(item);
+      const values = {};
+      if (!req.length) {
+        input.value = item.prompt || item.title || "";
+        runOnServer(item, input.value);
+        send();
+        return;
+      }
+      pendingLaunch = item;
+      document.getElementById("missingTitle").textContent = "Complete " + (item.title || "item");
+      document.getElementById("missingHint").textContent =
+        (item.skill ? ("Skill " + item.skill + ". ") : "") +
+        "Fill the missing fields, then the sample prompt is sent.";
+      const box = document.getElementById("missingFields");
+      box.innerHTML = "";
+      req.forEach(function (f) {
+        const lab = document.createElement("label");
+        lab.textContent = f.label || f.key;
+        const inp = document.createElement(f.key === "documentText" || f.key === "text" && (f.label || "").toLowerCase().indexOf("idx") >= 0 ? "textarea" : "input");
+        if (inp.tagName === "TEXTAREA") { inp.className = "field"; inp.rows = 4; }
+        inp.id = "miss-" + f.key;
+        inp.placeholder = f.placeholder || f.key;
+        inp.required = true;
+        lab.appendChild(inp);
+        box.appendChild(lab);
+      });
+      document.getElementById("missingDlg").showModal();
+    }
+    document.getElementById("missingGo").onclick = function (e) {
+      e.preventDefault();
+      if (!pendingLaunch) return;
+      const req = pendingLaunch.required || templateRequired(pendingLaunch);
+      const values = {};
+      const still = [];
+      req.forEach(function (f) {
+        const el = document.getElementById("miss-" + f.key);
+        values[f.key] = el ? el.value.trim() : "";
+        if (!values[f.key]) still.push(f);
+      });
+      if (still.length) {
+        document.getElementById("missingHint").textContent =
+          "Still missing: " + still.map(function (f) { return f.label || f.key; }).join(", ");
+        return;
+      }
+      document.getElementById("missingDlg").close();
+      input.value = fillPrompt(pendingLaunch.prompt || pendingLaunch.title, values);
+      pendingLaunch._values = values;
+      runOnServer(pendingLaunch, input.value);
+      pendingLaunch = null;
+      send();
+    };
+
+    document.querySelectorAll(".nav-toggle").forEach(function (btn) {
+      btn.onclick = function () {
+        const section = btn.parentElement;
+        const open = !section.classList.contains("open");
+        section.classList.toggle("open", open);
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        btn.querySelector(".chev").textContent = open ? "▾" : "▴";
+      };
+    });
+    async function fetchKind(kind) {
+      try {
+        const res = await fetch(API + "/lookup/" + kind + "s");
+        const data = await res.json();
+        return (data.items || []).map(function (item) { return asCatalogItem(item, kind); });
+      } catch (_) {
+        return [];
+      }
+    }
+
+    async function loadSidebar() {
+      const actions = await fetchKind("action");
+      const skills = await fetchKind("skill");
+      ACTION_ITEMS = actions;
+      SKILL_ITEMS = skills;
+      renderCatalog();
+      await loadTemplates();
+    }
+
+    function itemKey(item) {
+      return String((item && (item.id || item.title || item.name)) || "").trim().toLowerCase();
+    }
+    function mergeCatalog(remoteItems, localItems) {
+      const map = new Map();
+      (remoteItems || []).forEach(function (item) {
+        const key = itemKey(item);
+        if (key) map.set(key, item);
+      });
+      (localItems || []).forEach(function (item) {
+        const key = itemKey(item);
+        if (!key) return;
+        const prev = map.get(key);
+        map.set(key, prev ? Object.assign({}, prev, item, { custom: true }) : item);
+      });
+      return Array.from(map.values());
+    }
+
+    async function loadTemplates() {
+      let remote = [];
+      try {
+        const res = await fetch(API + "/lookup/templates");
+        const data = await res.json();
+        remote = data.items || [];
+      } catch (_) {}
+      const remoteItems = remote.map(function (item) { return asCatalogItem(item, "template"); });
+      const local = localTemplates().map(function (item) { return asCatalogItem(item, "template"); });
+      TEMPLATE_ITEMS = mergeCatalog(remoteItems, local);
+      renderTemplates(TEMPLATE_ITEMS);
+    }
+
+    function persistObject(kind, rec) {
+      const path = kind === "template" ? "/lookup/templates" : "/lookup/" + kind + "s";
+      return fetch(API + path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rec)
+      }).catch(function () { return null; });
+    }
+
+    async function runOnServer(item, prompt) {
+      const body = {
+        method: "runObject",
+        kind: item.kind || item.skill && "skill" || "action",
+        name: item.title || item.name || "",
+        prompt: prompt || item.prompt || item.title || "",
+        values: item._values || {}
+      };
+      try {
+        await fetch(API + "/mcp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: Date.now(), method: "tools/call", params: { name: "runObject", arguments: body } })
+        });
+      } catch (_) {}
+    }
+
+    renderCatalog();
+    loadSidebar();
+
+    function add(role, text) {
+      if (empty) empty.remove();
+      const wrap = document.createElement("div");
+      wrap.className = "msg " + role;
+      wrap.innerHTML = '<div class="role"></div><div class="body"></div>';
+      wrap.querySelector(".role").textContent = role === "user" ? "You" : "Assistant";
+      wrap.querySelector(".body").textContent = text || "";
+      logEl.appendChild(wrap);
+      thread.scrollTop = thread.scrollHeight;
+      return wrap;
+    }
+
+    function addPlan(wrap, plan, data) {
+      const card = document.createElement("div");
+      card.className = "plan";
+      const title = (plan && (plan.flowName || plan.pattern)) || "Result";
+      card.innerHTML = "<strong></strong><pre></pre>";
+      card.querySelector("strong").textContent = title;
+      card.querySelector("pre").textContent = JSON.stringify(data || plan, null, 2).slice(0, 2500);
+      wrap.appendChild(card);
+    }
+
+    async function send() {
+      const message = input.value.trim();
+      if (!message) return;
+      add("user", message);
+      trace("info", "user message", message.slice(0, 240));
+      input.value = "";
+      sendBtn.disabled = true;
+      const pending = add("bot", "…");
+      try {
+        const res = await fetch(API + "/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+        const data = await res.json().catch(() => ({}));
+        const text = data.reply || data.detail || data.error || ("Request failed (" + res.status + ")");
+        pending.querySelector(".body").textContent = typeof text === "string" ? text : JSON.stringify(text);
+        if (data.plan || data.data) addPlan(pending, data.plan, data.data);
+      } catch (e) {
+        pending.querySelector(".body").textContent = "Cannot reach orchestrator at " + API + " — " + e;
+      }
+      sendBtn.disabled = false;
+      input.focus();
+    }
+
+    sendBtn.onclick = send;
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+
+    document.getElementById("homeBtn").onclick = () => {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "kd-nifi-ai", action: "home" }, "*");
+          return;
+        }
+      } catch (_) {}
+      const home = new URLSearchParams(location.search).get("home") || "/home";
+      window.location.href = home;
+    };
+
+    const testIcon = document.getElementById("testResult");
+    const connTitle = document.getElementById("nifiConnTitle");
+    const connBanner = document.getElementById("nifiConnBanner");
+    const settingsBody = document.getElementById("settingsBody");
+    const connBtn = document.getElementById("openSettings");
+    const connToneEls = [testIcon, connTitle, connBanner, settingsBody, connBtn];
+
+    function proxyUnreachableMessage(data) {
+      const blob = JSON.stringify(data || {});
+      let upstream = "nifi-manager:8443";
+      if (blob.includes("nifi-manager")) upstream = "nifi-manager:8443";
+      else if (/nifi:\d+/.test(blob)) upstream = "nifi:8443";
+      const port = location.port === "27120" ? "27111" : (location.port || "27111");
+      const host = location.hostname || "localhost";
+      return [
+        "NiFi is not reachable through this proxy",
+        "This is https://" + host + ":" + port + " (nifi-proxy). Upstream is " + upstream + ".",
+        "Open the real NiFi UI instead if you passed --nifi-url, or wait for the compose NiFi container to finish booting (1–3 minutes)."
+      ].join("\n");
+    }
+
+    const markTest = (state, message) => {
+      connToneEls.forEach((el) => {
+        if (!el) return;
+        el.classList.remove("is-ok", "is-bad", "is-wait");
+        if (state) el.classList.add(state);
+      });
+      if (testIcon) {
+        testIcon.title = state === "is-ok"
+          ? "Connection succeeded"
+          : state === "is-wait"
+            ? "Testing NiFi connection"
+            : "Connection failed";
+        testIcon.setAttribute("aria-label", testIcon.title);
+      }
+      if (connBanner) connBanner.textContent = message || "";
+    };
+    document.getElementById("closeSettings").onclick = () => {
+      document.getElementById("settings").close();
+    };
+    document.getElementById("closeSettingsX").onclick = () => {
+      document.getElementById("settings").close();
+    };
+    document.getElementById("openSettings").onclick = async () => {
+      const dlg = document.getElementById("settings");
+      dlg.showModal();
+      markTest("is-wait", "Checking NiFi connection…");
+      settingsBody.textContent = "loading…";
+      try {
+        const res = await fetch(API + "/settings/nifi");
+        const data = await res.json();
+        settingsBody.textContent = JSON.stringify(data, null, 2);
+        if (data && data.ok === true && !data.error) {
+          const ver = (data.about && data.about.version) || "";
+          markTest("is-ok", ver ? ("NiFi connection OK — version " + ver) : "NiFi connection OK");
+        } else {
+          markTest("is-bad", proxyUnreachableMessage(data));
+        }
+      } catch (e) {
+        settingsBody.textContent = String(e);
+        markTest("is-bad", proxyUnreachableMessage({ error: String(e) }));
+      }
+    };
+    document.getElementById("testConn").onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      markTest("is-wait", "Testing NiFi connection…");
+      settingsBody.textContent = "testing…";
+      try {
+        const res = await fetch(API + "/settings/nifi/test", { method: "POST" });
+        const data = await res.json().catch(() => ({ ok: false, error: res.status }));
+        settingsBody.textContent = JSON.stringify(data, null, 2);
+        const ok = !!(res.ok && data && data.ok === true && !data.detail && !data.error);
+        if (ok) {
+          const ver = data.version || (data.about && data.about.version) || "";
+          markTest("is-ok", ver ? ("NiFi connection OK — version " + ver) : "NiFi connection OK");
+        } else {
+          markTest("is-bad", proxyUnreachableMessage(data));
+        }
+      } catch (err) {
+        settingsBody.textContent = String(err);
+        markTest("is-bad", proxyUnreachableMessage({ error: String(err) }));
+      }
+    };
+
+    document.getElementById("addTpl").onclick = () => document.getElementById("tplDialog").showModal();
+    document.getElementById("tplCancel").onclick = (e) => {
+      e.preventDefault();
+      document.getElementById("tplDialog").close();
+    };
+    document.getElementById("tplX").onclick = (e) => {
+      e.preventDefault();
+      document.getElementById("tplDialog").close();
+    };
+    document.getElementById("missingX").onclick = (e) => {
+      e.preventDefault();
+      document.getElementById("missingDlg").close();
+      pendingLaunch = null;
+    };
+    document.getElementById("missingCancel").onclick = (e) => {
+      e.preventDefault();
+      document.getElementById("missingDlg").close();
+      pendingLaunch = null;
+    };
+    document.getElementById("tplSave").onclick = async (e) => {
+      e.preventDefault();
+      const err = document.getElementById("tplError");
+      const rec = {
+        id: "local-" + Date.now(),
+        kind: "template",
+        title: document.getElementById("tplTitle").value.trim(),
+        description: document.getElementById("tplDesc").value.trim(),
+        prompt: document.getElementById("tplPrompt").value.trim(),
+        needs: document.getElementById("tplNeeds").value.trim(),
+        custom: true
+      };
+      if (!rec.title) {
+        err.textContent = "Title is required.";
+        err.classList.add("is-on");
+        return;
+      }
+      if (!rec.prompt) rec.prompt = "Create a NiFi flow: " + rec.title;
+      err.classList.remove("is-on");
+      err.textContent = "";
+      const all = localTemplates().filter(function (item) {
+        return itemKey(item) !== itemKey(rec);
+      });
+      all.push(rec);
+      saveLocal(all);
+      try {
+        await fetch(API + "/lookup/templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rec)
+        });
+      } catch (_) {}
+      document.getElementById("tplDialog").close();
+      document.getElementById("tplForm").reset();
+      await loadTemplates();
+    };
+
+    window.addEventListener("message", function (event) {
+      const data = event.data || {};
+      if (!data || data.type !== "kd-nifi-ai") return;
+      if (data.action === "run-prompt") {
+        const prompt = String(data.prompt || input.value || "").trim();
+        if (!prompt) return;
+        input.value = prompt;
+        if (data.force) send();
+        return;
+      }
+      if (data.action === "run-item") {
+        launchCatalogItem(asCatalogItem(data.item || data, data.kind || "template"));
+      }
+    });
+
+    document.querySelector("aside").addEventListener("click", function (ev) {
+      const btn = ev.target.closest(".side-btn");
+      if (!btn || ev.target.closest(".kd-nifi-object-actions, .kd-nifi-add-entry, [data-kd-add]")) return;
+      if (ev.defaultPrevented) return;
+      const title = (btn.dataset.title || (btn.querySelector("span") && btn.querySelector("span").textContent) || "").trim();
+      const kind = btn.dataset.kind || (btn.closest("#templates") ? "template" : btn.closest("#skills") ? "skill" : "action");
+      const pool = kind === "template" ? TEMPLATE_ITEMS : kind === "skill" ? SKILL_ITEMS : ACTION_ITEMS;
+      const found = (pool || []).find(function (item) {
+        return itemKey(item) === title.toLowerCase() || (item.title || item.name) === title;
+      });
+      const item = found || asCatalogItem({
+        title: title,
+        name: title,
+        prompt: btn.dataset.prompt || title,
+        needs: btn.dataset.params || "",
+        kind: kind,
+        custom: btn.dataset.kdCreated === "1"
+      }, kind);
+      ev.preventDefault();
+      launchCatalogItem(item);
+    });
+
+    fetch(API + "/health").then((r) => r.json()).then((d) => {
+      document.getElementById("status").textContent = d.status === "ok" ? "orchestrator up" : "degraded";
+    }).catch(() => {
+      document.getElementById("status").textContent = "orchestrator offline";
+    });
+    loadSidebar();
+
+    function closeDefaultOffer() {
+      const dlg = document.getElementById("defaultDlg");
+      if (dlg && dlg.open) dlg.close();
+    }
+    function applyDefaultBundle(data) {
+      const objects = (data && data.objects) || [];
+      ACTION_ITEMS = objects.filter(function (item) { return item.kind === "action"; }).map(function (item) { return asCatalogItem(item, "action"); });
+      SKILL_ITEMS = objects.filter(function (item) { return item.kind === "skill"; }).map(function (item) { return asCatalogItem(item, "skill"); });
+      const templates = objects.filter(function (item) { return item.kind === "template"; }).map(function (item) { return asCatalogItem(item, "template"); });
+      TEMPLATE_ITEMS = templates;
+      saveLocal(templates);
+      renderCatalog();
+      renderTemplates(TEMPLATE_ITEMS);
+    }
+    async function loadDefaultItemsFile() {
+      const urls = ["kd-nifi-items-default.json", "/assets/config/kd-nifi-items-default.json"];
+      for (let i = 0; i < urls.length; i += 1) {
+        try {
+          const res = await fetch(urls[i]);
+          if (!res.ok) continue;
+          const data = await res.json();
+          applyDefaultBundle(data);
+          return true;
+        } catch (_) {}
+      }
+      return false;
+    }
+    function offerDefaultItems() {
+      if (window.parent && window.parent !== window) return;
+      const dlg = document.getElementById("defaultDlg");
+      if (!dlg || dlg.dataset.offered === "1") return;
+      dlg.dataset.offered = "1";
+      dlg.showModal();
+    }
+    document.getElementById("defaultSkip").onclick = function (e) {
+      e.preventDefault();
+      closeDefaultOffer();
+    };
+    document.getElementById("defaultX").onclick = function (e) {
+      e.preventDefault();
+      closeDefaultOffer();
+    };
+    document.getElementById("defaultLoad").onclick = async function (e) {
+      e.preventDefault();
+      closeDefaultOffer();
+      const ok = await loadDefaultItemsFile();
+      if (!ok) {
+        document.getElementById("missingTitle").textContent = "Default items";
+        document.getElementById("missingHint").textContent = "Could not load kd-nifi-items-default.json.";
+        document.getElementById("missingFields").innerHTML = "";
+        document.getElementById("missingDlg").showModal();
+      }
+    };
+    offerDefaultItems();
+  </script>
+</body>
+</html>

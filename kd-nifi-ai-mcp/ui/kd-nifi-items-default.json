@@ -1,0 +1,427 @@
+{
+  "version": 1,
+  "kind": "all",
+  "exportedAt": "2026-10-03T12:59:11.340Z",
+  "objects": [
+    {
+      "kind": "action",
+      "name": "NiFi version",
+      "description": "Live GET /nifi-api/flow/about",
+      "prompt": "What is the connected NiFi version?",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "List process groups",
+      "description": "NiFi flow inventory",
+      "prompt": "List all process groups on the NiFi canvas",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "Content Query",
+      "description": "IDOL Content action=Query",
+      "prompt": "Run an IDOL Content Query for {{text}} with MaxResults {{maxResults}}",
+      "needs": "text, maxResults"
+    },
+    {
+      "kind": "action",
+      "name": "GetContent",
+      "description": "Retrieve documents by ID",
+      "prompt": "Retrieve IDOL GetContent for document ID {{reference}}",
+      "needs": "reference"
+    },
+    {
+      "kind": "action",
+      "name": "Suggest similar",
+      "description": "Content Suggest / UseVectors on 26.3",
+      "prompt": "Find similar documents to ID {{reference}} using Content Suggest",
+      "needs": "reference"
+    },
+    {
+      "kind": "action",
+      "name": "Educe from text",
+      "description": "Eduction entity / PII extract",
+      "prompt": "Run Eduction EduceFromText on this text: {{text}}",
+      "needs": "text"
+    },
+    {
+      "kind": "action",
+      "name": "Media Process",
+      "description": "Media Server Process a file",
+      "prompt": "Run Media Server Process on source path {{sourcePath}}",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "action",
+      "name": "Media OCR",
+      "description": "26.3 OCR languages",
+      "prompt": "Run Media Server OCR on {{sourcePath}} with language {{language}}",
+      "needs": "sourcePath, language"
+    },
+    {
+      "kind": "action",
+      "name": "Speech to text",
+      "description": "Combined Medium/Large on 26.3",
+      "prompt": "Transcribe {{sourcePath}} with Media Server speech-to-text modelSize={{modelSize}}",
+      "needs": "sourcePath, modelSize"
+    },
+    {
+      "kind": "action",
+      "name": "Answer Ask",
+      "description": "Answer Server Ask",
+      "prompt": "Ask Answer Server: {{question}}",
+      "needs": "question"
+    },
+    {
+      "kind": "action",
+      "name": "KG neighbors",
+      "description": "Knowledge Graph GetNeighbors",
+      "prompt": "Get Knowledge Graph neighbors for node {{nodeId}}",
+      "needs": "nodeId"
+    },
+    {
+      "kind": "action",
+      "name": "CFS connector status",
+      "description": "Ingest / CFS GetStatus",
+      "prompt": "Show CFS connector status and last synchronize result",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "License / GetStatus",
+      "description": "License Server and component health",
+      "prompt": "Check Knowledge Discovery License Server and component GetStatus",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "Resolve IDOL NARs",
+      "description": "Version-strict 26.3 NAR match",
+      "prompt": "Resolve IDOL NiFi NARs for Knowledge Discovery 26.3 and NiFi 26.3",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "Generate IDOL NiFi flow",
+      "description": "Hot folder to KeyView to PutIDOL",
+      "prompt": "Generate a 26.3 IDOL NiFi flow that watches {{sourcePath}} then KeyViewFilter then PutIDOL to {{idolHost}}:{{idolPort}}",
+      "needs": "sourcePath, idolHost, idolPort"
+    },
+    {
+      "kind": "action",
+      "name": "Sample flow",
+      "description": "GenerateFlowFile → LogAttribute",
+      "prompt": "Execute the NiFi template \"Sample flow\": GenerateFlowFile → LogAttribute. Use the MCP tools to run this object's prompt and apply it to the current flow.",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "File ingest",
+      "description": "Watch a directory and send files downstream",
+      "prompt": "Build a GetFile flow that tails a directory and logs each file",
+      "needs": "source_path"
+    },
+    {
+      "kind": "action",
+      "name": "IDOL file ingest",
+      "description": "GetFile → KD metadata → IDOL Content /action=index",
+      "prompt": "Create an IDOL sample flow",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "SAP ingest",
+      "description": "SAP repository → IDOL Content",
+      "prompt": "Create a KD SAP ingestion flow into IDOL",
+      "needs": "sap_endpoint, repository, idol_host"
+    },
+    {
+      "kind": "action",
+      "name": "Documentum ingest",
+      "description": "Documentum REST repository → IDOL Content",
+      "prompt": "Create a KD Documentum ingestion flow into IDOL",
+      "needs": "documentum_endpoint, idol_host"
+    },
+    {
+      "kind": "action",
+      "name": "26.3 GetFileSystem → PutIDOL",
+      "description": "IdolSslConfigServiceImpl + IdolLicenseServiceImpl, GetFileSystem → PutIDOL",
+      "prompt": "Create a 26.3.0-nifi2 GetFileSystem PutIDOL sample",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "AI test with Python",
+      "description": "GenerateDocumentFlowFile → ExecuteDocumentPython + both IDOL CS",
+      "prompt": "Create an AI test with Python sample using ExecuteDocumentPython",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "Indexing / enrichment stage",
+      "description": "Standalone metadata mapping + IDOL index stage",
+      "prompt": "Create a KD indexing and enrichment stage",
+      "needs": ""
+    },
+    {
+      "kind": "action",
+      "name": "Inspect root group",
+      "description": "List groups and processors on root",
+      "prompt": "Summarize the root process group",
+      "needs": ""
+    },
+    {
+      "kind": "skill",
+      "name": "Service discovery",
+      "description": "Discover components, versions, health",
+      "prompt": "Discover configured Knowledge Discovery 26.3 components and report health",
+      "needs": ""
+    },
+    {
+      "kind": "skill",
+      "name": "Face analysis",
+      "description": "Detect / recognize faces",
+      "prompt": "Detect and recognize faces in {{sourcePath}} using Media Server",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "Object recognition",
+      "description": "BuildObjectClassRecognizer 26.2+",
+      "prompt": "Recognize objects in {{sourcePath}} with Media Server object class recognizer",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "API discovery",
+      "description": "Map a task to a 26.3 action",
+      "prompt": "Which Knowledge Discovery 26.3 API and MCP tool should I use to {{task}}?",
+      "needs": "task"
+    },
+    {
+      "kind": "skill",
+      "name": "Content search",
+      "description": "Conceptual / Boolean / fielded Query",
+      "prompt": "Search IDOL Content for {{text}} using Query, MaxResults {{maxResults}}, print fields",
+      "needs": "text, maxResults"
+    },
+    {
+      "kind": "skill",
+      "name": "Content retrieve",
+      "description": "GetContent and View renditions",
+      "prompt": "Retrieve document {{reference}} with GetContent and render it with View",
+      "needs": "reference"
+    },
+    {
+      "kind": "skill",
+      "name": "Content similarity",
+      "description": "Suggest + 26.3 UseVectors",
+      "prompt": "Suggest similar documents to {{reference}} and enable UseVectors if this is 26.3",
+      "needs": "reference"
+    },
+    {
+      "kind": "skill",
+      "name": "Parametric search",
+      "description": "GetQueryTagValues / FieldText",
+      "prompt": "Run parametric Content search: FieldText {{fieldText}} and show tag values for {{fieldName}}",
+      "needs": "fieldText, fieldName"
+    },
+    {
+      "kind": "skill",
+      "name": "Content index",
+      "description": "DREADDDATA / delete (confirm)",
+      "prompt": "Index this IDX into Content database {{database}}: {{documentText}}",
+      "needs": "database, documentText"
+    },
+    {
+      "kind": "skill",
+      "name": "Content admin",
+      "description": "Sync, compact, initialize",
+      "prompt": "Show Content GetStatus then DRECOMPACT guidance for database {{database}}",
+      "needs": "database"
+    },
+    {
+      "kind": "skill",
+      "name": "Classification",
+      "description": "Category suggest / train",
+      "prompt": "Classify this text with Category: {{text}}",
+      "needs": "text"
+    },
+    {
+      "kind": "skill",
+      "name": "Entity extraction",
+      "description": "Eduction including 26.3 PII",
+      "prompt": "Extract entities and PII with Eduction from: {{text}}",
+      "needs": "text"
+    },
+    {
+      "kind": "skill",
+      "name": "Rich media",
+      "description": "Media Server Process / QueueInfo",
+      "prompt": "Process media file {{sourcePath}} with Media Server and poll QueueInfo",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "OCR",
+      "description": "26.3 OCR language additions",
+      "prompt": "Run Media Server OCR on {{sourcePath}} language={{language}}",
+      "needs": "sourcePath, language"
+    },
+    {
+      "kind": "skill",
+      "name": "Speech to text",
+      "description": "Combined Medium/Large on 26.3",
+      "prompt": "Transcribe {{sourcePath}} with Media Server speech-to-text modelSize={{modelSize}}",
+      "needs": "sourcePath, modelSize"
+    },
+    {
+      "kind": "skill",
+      "name": "Image description",
+      "description": "LLM ImageDescription 26.2+",
+      "prompt": "Generate an ImageDescription for {{sourcePath}} on Knowledge Discovery 26.3",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "Surveillance",
+      "description": "Number plate / vehicle",
+      "prompt": "Run number-plate and vehicle analysis on {{sourcePath}}",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "File content extraction",
+      "description": "CFS / KeyViewFilter",
+      "prompt": "Extract file content from {{sourcePath}} using KeyView / CFS for Knowledge Discovery 26.3",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "Ingest",
+      "description": "CFS synchronize / collect",
+      "prompt": "Synchronize CFS connector {{connector}} and report collect queue status",
+      "needs": "connector"
+    },
+    {
+      "kind": "skill",
+      "name": "NiFi ingest",
+      "description": "Version-aware NAR + flow",
+      "prompt": "Create a 26.3 IDOL NiFi ingest flow from {{sourcePath}} through KeyViewFilter and Eduction to PutIDOL",
+      "needs": "sourcePath"
+    },
+    {
+      "kind": "skill",
+      "name": "Security",
+      "description": "SecurityInfo / Community / OTDS",
+      "prompt": "Build SecurityInfo for user {{userName}} and run a secure Content Query for {{text}}",
+      "needs": "userName, text"
+    },
+    {
+      "kind": "skill",
+      "name": "Administration",
+      "description": "License, health, config",
+      "prompt": "Troubleshoot Knowledge Discovery 26.3: LicenseGet, GetStatus, and configuration checks",
+      "needs": ""
+    },
+    {
+      "kind": "skill",
+      "name": "Query manipulation",
+      "description": "QMS rewrite / promotions",
+      "prompt": "Send this query through QMS: {{text}}",
+      "needs": "text"
+    },
+    {
+      "kind": "skill",
+      "name": "Distributed search",
+      "description": "DAH Query / Suggest",
+      "prompt": "Run a DAH distributed Query for {{text}} across child engines",
+      "needs": "text"
+    },
+    {
+      "kind": "skill",
+      "name": "Distributed index",
+      "description": "DIH index routing",
+      "prompt": "Index a document through DIH into database {{database}}",
+      "needs": "database"
+    },
+    {
+      "kind": "skill",
+      "name": "Community agents",
+      "description": "Agentstore conceptual match",
+      "prompt": "Match Community / Agentstore agents against text: {{text}}",
+      "needs": "text"
+    },
+    {
+      "kind": "skill",
+      "name": "Knowledge graph",
+      "description": "Neighbors / path / subgraph",
+      "prompt": "Explore Knowledge Graph neighbors and a short path from node {{nodeId}}",
+      "needs": "nodeId"
+    },
+    {
+      "kind": "skill",
+      "name": "Answer Server",
+      "description": "Ask / Converse",
+      "prompt": "Ask Answer Server (26.3): {{question}}",
+      "needs": "question"
+    },
+    {
+      "kind": "template",
+      "name": "Sample flow",
+      "description": "GenerateFlowFile → LogAttribute",
+      "prompt": "Execute the NiFi template \"Sample flow\": GenerateFlowFile → LogAttribute. Use the MCP tools to run this object's prompt and apply it to the current flow.",
+      "needs": ""
+    },
+    {
+      "kind": "template",
+      "name": "File ingest",
+      "description": "Watch a directory and send files downstream",
+      "prompt": "Build a GetFile flow that tails a directory and logs each file",
+      "needs": "source_path"
+    },
+    {
+      "kind": "template",
+      "name": "IDOL file ingest",
+      "description": "GetFile → KD metadata → IDOL Content /action=index",
+      "prompt": "Create an IDOL sample flow",
+      "needs": ""
+    },
+    {
+      "kind": "template",
+      "name": "SAP ingest",
+      "description": "SAP repository → IDOL Content",
+      "prompt": "Create a KD SAP ingestion flow into IDOL",
+      "needs": "sap_endpoint, repository, idol_host"
+    },
+    {
+      "kind": "template",
+      "name": "Documentum ingest",
+      "description": "Documentum REST repository → IDOL Content",
+      "prompt": "Create a KD Documentum ingestion flow into IDOL",
+      "needs": "documentum_endpoint, idol_host"
+    },
+    {
+      "kind": "template",
+      "name": "26.3 GetFileSystem → PutIDOL",
+      "description": "IdolSslConfigServiceImpl + IdolLicenseServiceImpl, GetFileSystem → PutIDOL",
+      "prompt": "Create a 26.3.0-nifi2 GetFileSystem PutIDOL sample",
+      "needs": ""
+    },
+    {
+      "kind": "template",
+      "name": "AI test with Python",
+      "description": "GenerateDocumentFlowFile → ExecuteDocumentPython + both IDOL CS",
+      "prompt": "Create an AI test with Python sample using ExecuteDocumentPython",
+      "needs": ""
+    },
+    {
+      "kind": "template",
+      "name": "Indexing / enrichment stage",
+      "description": "Standalone metadata mapping + IDOL index stage",
+      "prompt": "Create a KD indexing and enrichment stage",
+      "needs": ""
+    }
+  ]
+}

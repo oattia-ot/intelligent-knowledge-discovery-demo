@@ -1,0 +1,76 @@
+{
+  "$schema_comment": "Facet definitions. idolField is used for GetQueryTagValues (must be parametric in IDOL). fieldTextName is used in Query FieldText MATCH{...}:name. show=false keeps the field in config but hides it in the Refine by panel. order is the Refine by display sequence (lower first). Omitted show defaults to true; omitted order sorts last.",
+  "fields": [
+    {
+      "id": "mime",
+      "idolField": "DOCUMENT/PART_MIMETYPE",
+      "fieldTextName": "PART_MIMETYPE",
+      "label": "File Type",
+      "multiSelect": true,
+      "v1": true,
+      "show": true,
+      "order": 30
+    },
+    {
+      "id": "name_value",
+      "idolField": "DOCUMENT/NAME_VALUE",
+      "fieldTextName": "NAME_VALUE",
+      "label": "Name",
+      "multiSelect": true,
+      "v1": true,
+      "show": true,
+      "order": 20
+    },
+    {
+      "id": "READABILITY_LANG",
+      "idolField": "DOCUMENT/READABILITY_LANG",
+      "fieldTextName": "READABILITY_LANG",
+      "label": "Language",
+      "multiSelect": true,
+      "v1": true,
+      "show": true,
+      "order": 10
+    },
+    {
+      "id": "folder",
+      "idolField": "DOCUMENT/FOLDER",
+      "fieldTextName": "FOLDER",
+      "label": "Folder",
+      "multiSelect": true,
+      "v1": true,
+      "show": true,
+      "order": 40
+    },
+    {
+      "id": "database",
+      "idolField": "DOCUMENT/DREDBNAME",
+      "fieldTextName": "DREDBNAME",
+      "label": "Database",
+      "multiSelect": true,
+      "v1": true,
+      "show": false,
+      "order": 50
+    },
+    {
+      "id": "connector_group",
+      "idolField": "DOCUMENT/CONNECTOR_GROUP",
+      "fieldTextName": "CONNECTOR_GROUP",
+      "label": "Connector group",
+      "multiSelect": true,
+      "v1": true,
+      "show": false,
+      "order": 60,
+      "notes": "Only appears if configured as parametric in Content; FieldText MATCH still works if values are known."
+    },
+    {
+      "id": "language",
+      "idolField": "DOCUMENT/DETECTEDLANGUAGE",
+      "fieldTextName": "DETECTEDLANGUAGE",
+      "label": "Language",
+      "multiSelect": true,
+      "v1": true,
+      "show": true,
+      "order": 70
+    }
+  ]
+}

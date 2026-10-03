@@ -1,0 +1,57 @@
+<article class="expert-card" [class.expert-card--compact]="compact">
+  <div class="expert-card__avatar" aria-hidden="true">{{ initials }}</div>
+  <div class="expert-card__body">
+    <h3 class="expert-card__name">{{ person.displayName }}</h3>
+    @if (person.email) {
+      <p class="expert-card__email" [title]="person.email">{{ person.email }}</p>
+    }
+    @if (person.fields?.length) {
+      <dl class="expert-card__fields">
+        @for (field of person.fields; track field.name) {
+          <div class="expert-card__field">
+            <dt>{{ field.label }}</dt>
+            <dd>
+              @if (field.href) {
+                <a [href]="field.href">{{ field.value }}</a>
+              } @else {
+                {{ field.value }}
+              }
+            </dd>
+          </div>
+        }
+      </dl>
+    }
+    @if (person.terms.length) {
+      @if (showKeywordToggle) {
+        <button
+          type="button"
+          class="expert-card__toggle"
+          (click)="toggleTerms($event)"
+          [attr.aria-expanded]="termsOpen"
+        >
+          {{ termsOpen ? 'Hide keywords' : 'Show keywords' }}
+          ({{ person.terms.length }})
+        </button>
+      }
+      @if (showTerms) {
+        <ul class="expert-card__terms">
+          @for (term of person.terms; track term) {
+            <li>{{ term }}</li>
+          }
+        </ul>
+      }
+    }
+    @if (scoreLabel) {
+      <p class="expert-card__score">{{ scoreLabel }}</p>
+    }
+    @if (expandQuery) {
+      <a
+        class="expert-card__expand"
+        routerLink="/experts"
+        [queryParams]="{ q: expandQuery }"
+      >
+        Expand
+      </a>
+    }
+  </div>
+</article>

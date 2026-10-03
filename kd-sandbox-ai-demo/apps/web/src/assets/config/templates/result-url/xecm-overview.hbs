@@ -1,0 +1,6 @@
+{{!--
+  xECM / Content Server overview URL.
+  Set host via result-urls env or edit here. NODE_ID is derived from DREREFERENCE
+  when it looks like OpenText:<id>, or from a NODE_ID index field if present.
+--}}
+{{#if NODE_ID}}https://otcs.poc058.eimdemo.com/cs/cs.exe?func=ll&objAction=overview&objId={{encode NODE_ID}}{{else}}{{#if DREREFERENCE}}{{DREREFERENCE}}{{/if}}{{/if}}

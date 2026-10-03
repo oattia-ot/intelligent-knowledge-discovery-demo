@@ -1,0 +1,18 @@
+{
+  "$schema_comment": "My Recommendations (Community ProfileRead → weighted Content Query). enabled is the admin gate: false hides every recommendations control (including Settings). When true, header Settings can turn the feature Off for the session and optionally hide the home panel (showOnHome is the default for that). maxTerms / maxProfiles / maxResultsPerProfile match Find. Empty databases uses every default-selected index from databases.json. QMS is not used.",
+  "enabled": true,
+  "showOnHome": true,
+  "maxTerms": 30,
+  "maxProfiles": 3,
+  "maxResultsPerProfile": 2,
+  "highlight": true,
+  "minScore": 0,
+  "summary": true,
+  "summaryType": "Context",
+  "characters": 200,
+  "databases": [],
+  "fieldText": "",
+  "minDate": "",
+  "maxDate": "",
+  "namedArea": ""
+}

@@ -1,0 +1,157 @@
+<section
+  class="recs"
+  [class.recs--page]="variant === 'page'"
+  [class.recs--panel]="variant === 'panel'"
+  aria-labelledby="recs-heading"
+>
+  @if (variant === 'page') {
+    <p class="recs__back">
+      <a
+        class="recs__back-link"
+        [attr.href]="backHref()"
+        (click)="goBack($event)"
+      >
+        {{ backLabel() }}
+      </a>
+    </p>
+  }
+
+  <header class="recs__header">
+    <h2 id="recs-heading" class="recs__title">My Recommendations</h2>
+    <p class="recs__subtitle">Documents matching your reading profile</p>
+  </header>
+
+  @if (loading()) {
+    <div class="recs__status" aria-live="polite">
+      <app-wait-indicator label="Finding documents for you…" />
+    </div>
+    <ul class="recs__list" role="presentation" aria-busy="true">
+      @for (i of [1, 2, 3]; track i) {
+        <li class="recs-card recs-card--skel">
+          <span class="recs-skel recs-skel--title"></span>
+          <span class="recs-skel recs-skel--meta"></span>
+          <span class="recs-skel recs-skel--body"></span>
+        </li>
+      }
+    </ul>
+  } @else if (error()) {
+    <div class="recs__status recs__status--error" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" class="recs__retry" (click)="retry()">Try again</button>
+    </div>
+  } @else if (documents().length === 0) {
+    <p class="recs__status" role="status">
+      @if (noProfileTerms()) {
+        No recommendations yet. Preview a few documents in search so Community can learn your
+        interests.
+      } @else {
+        No matching documents for your current interests.
+      }
+    </p>
+  } @else {
+    <ul class="recs__list" role="list">
+      @for (doc of documents(); track doc.reference + (doc.title || '')) {
+        <li class="recs-card">
+          <h3 class="recs-card__title">{{ displayTitle(doc) }}</h3>
+          <div class="recs-card__meta">
+            @if (databaseLabel(doc)) {
+              <span class="recs-card__chip">{{ databaseLabel(doc) }}</span>
+            }
+            @if (metaString(doc, 'date')) {
+              <span class="recs-card__date">{{ metaString(doc, 'date') }}</span>
+            }
+            @if (metaString(doc, 'mimeType')) {
+              <span class="recs-card__muted">{{ metaString(doc, 'mimeType') }}</span>
+            }
+          </div>
+          @if (displaySummary(doc)) {
+            <button
+              type="button"
+              class="recs-card__snippet"
+              (click)="openPreview(doc, $event)"
+              [attr.title]="doc.reference ? 'Open preview' : null"
+              [disabled]="!doc.reference"
+            >
+              <span [innerHTML]="summaryHtml(doc)"></span>
+            </button>
+          } @else if (doc.reference) {
+            <button
+              type="button"
+              class="recs-card__snippet recs-card__snippet--empty"
+              (click)="openPreview(doc, $event)"
+            >
+              Open preview…
+            </button>
+          }
+          @if (openUrl(doc)) {
+            <p class="recs-card__ref" [title]="openUrl(doc)">{{ openUrl(doc) }}</p>
+          } @else if (doc.reference) {
+            <p class="recs-card__ref" [title]="doc.reference">{{ doc.reference }}</p>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+@if (previewDoc(); as preview) {
+  <div
+    class="recs-preview-overlay"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'Preview: ' + displayTitle(preview)"
+    (click)="closePreview()"
+  >
+    <div class="recs-preview" (click)="$event.stopPropagation()">
+      <header class="recs-preview__header">
+        <div class="recs-preview__text">
+          <h2 class="recs-preview__title">{{ displayTitle(preview) }}</h2>
+          <p class="recs-preview__meta">
+            @if (databaseLabel(preview)) {
+              <span class="recs-card__chip">{{ databaseLabel(preview) }}</span>
+            }
+            @if (metaString(preview, 'mimeType')) {
+              <span>{{ metaString(preview, 'mimeType') }}</span>
+            }
+          </p>
+        </div>
+        <div class="recs-preview__actions">
+          <button
+            type="button"
+            class="recs-preview__btn"
+            (click)="downloadOriginal(preview, $event)"
+            [disabled]="!preview.reference"
+          >
+            Download
+          </button>
+          @if (openUrl(preview) || preview.reference) {
+            <button
+              type="button"
+              class="recs-preview__btn recs-preview__btn--secondary"
+              (click)="openSource(preview, $event)"
+            >
+              Open source
+            </button>
+          }
+          <button
+            type="button"
+            class="recs-preview__btn recs-preview__btn--close"
+            (click)="closePreview()"
+            aria-label="Close preview"
+          >
+            Close
+          </button>
+        </div>
+      </header>
+      <div class="recs-preview__body">
+        @if (previewLoading()) {
+          <p class="recs-preview__status">Loading preview…</p>
+        } @else if (previewError()) {
+          <p class="recs-preview__status recs-preview__status--error">{{ previewError() }}</p>
+        } @else if (previewUrl()) {
+          <iframe class="recs-preview__frame" [src]="previewUrl()" title="Document preview"></iframe>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,249 @@
+{
+  "$comment": "mcp_tool is either a live Cloudera nifi-mcp-server tool or an OpenText KD tool implemented by the orchestrator (kd_mcp_tools). KD tools create IDOL/NiFi flows when a model or the UI issues an MCP-style request.",
+  "official_mcp_tools": [
+    "start_new_flow",
+    "create_process_group",
+    "create_processor",
+    "update_processor_config",
+    "create_connection",
+    "create_controller_service",
+    "update_controller_service_properties",
+    "enable_controller_service",
+    "create_parameter_context",
+    "apply_parameter_context_to_process_group",
+    "get_root_process_group",
+    "get_nifi_version",
+    "get_processor_types",
+    "get_flow_health_status",
+    "start_all_processors_in_group",
+    "stop_all_processors_in_group",
+    "check_configuration"
+  ],
+  "templates": [
+    {
+      "id": "sample",
+      "file": null,
+      "group": "actions",
+      "title": "Sample flow",
+      "description": "GenerateFlowFile \u2192 LogAttribute",
+      "prompt": "Create a sample NiFi flow",
+      "runtime": "official-mcp",
+      "nifi_rest": "create_sample_flow",
+      "mcp_tool": "start_new_flow",
+      "mcp_args": {
+        "required": [
+          "flow_name"
+        ],
+        "optional": [
+          "parent_pg_id"
+        ]
+      },
+      "official_recipe": [
+        "get_root_process_group",
+        "start_new_flow",
+        "create_processor",
+        "create_processor",
+        "create_connection"
+      ],
+      "required_config": [],
+      "optional_config": {
+        "flow_name": "Sample GenerateFlowFile"
+      }
+    },
+    {
+      "id": "file",
+      "file": "ingest/file.json",
+      "group": "ingest",
+      "title": "File ingest",
+      "description": "Watch a directory and send files downstream",
+      "prompt": "Build a GetFile flow that tails a directory and logs each file",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_idol_sample_flow",
+      "mcp_tool": "create_kd_file_connector_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "create_processor",
+        "create_processor",
+        "create_connection"
+      ],
+      "required_config": [
+        "source_path"
+      ],
+      "optional_config": {
+        "file_filter": ".*\\.(pdf|docx?|xlsx?)",
+        "recursive": true
+      }
+    },
+    {
+      "id": "idol-file",
+      "file": "ingest/idol-file.json",
+      "group": "ingest",
+      "title": "IDOL file ingest",
+      "description": "GetFile \u2192 KD metadata \u2192 IDOL Content /action=index",
+      "prompt": "Create an IDOL sample flow",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_idol_sample_flow",
+      "mcp_tool": "create_kd_file_connector_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "create_processor",
+        "create_connection"
+      ],
+      "required_config": [],
+      "optional_config": {
+        "source_path": "/idol-ingest",
+        "idol_host": "idol-content",
+        "idol_port": "9100"
+      }
+    },
+    {
+      "id": "sap",
+      "file": "ingest/sap.json",
+      "group": "ingest",
+      "title": "SAP ingest",
+      "description": "SAP repository \u2192 IDOL Content",
+      "prompt": "Create a KD SAP ingestion flow into IDOL",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_http_source_idol_flow",
+      "mcp_tool": "create_kd_sap_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "create_processor",
+        "create_connection"
+      ],
+      "required_config": [
+        "sap_endpoint",
+        "repository",
+        "idol_host"
+      ],
+      "optional_config": {
+        "idol_port": "9100"
+      }
+    },
+    {
+      "id": "documentum",
+      "file": "ingest/documentum.json",
+      "group": "ingest",
+      "title": "Documentum ingest",
+      "description": "Documentum REST repository \u2192 IDOL Content",
+      "prompt": "Create a KD Documentum ingestion flow into IDOL",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_http_source_idol_flow",
+      "mcp_tool": "create_kd_documentum_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "create_processor",
+        "create_connection"
+      ],
+      "required_config": [
+        "documentum_endpoint",
+        "idol_host"
+      ],
+      "optional_config": {
+        "idol_port": "9100"
+      }
+    },
+    {
+      "id": "idol-nifi2-26.3",
+      "file": "idol-nifi2/26.3-getfilesystem-putidol.json",
+      "group": "idol-nifi2",
+      "title": "26.3 GetFileSystem \u2192 PutIDOL",
+      "description": "IdolSslConfigServiceImpl + IdolLicenseServiceImpl, GetFileSystem \u2192 PutIDOL",
+      "prompt": "Create a 26.3.0-nifi2 GetFileSystem PutIDOL sample",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_idol_nifi2_sample_flow",
+      "mcp_tool": "create_kd_idol_nifi2_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_controller_service",
+        "create_controller_service",
+        "update_controller_service_properties",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "update_processor_config",
+        "create_connection"
+      ],
+      "required_config": [],
+      "optional_config": {
+        "source_path": "/idol-ingest",
+        "idol_host": "idol-content",
+        "idol_port": "9000"
+      }
+    },
+    {
+      "id": "idol-ai-python",
+      "file": "idol-nifi2/ai-python.json",
+      "group": "idol-nifi2",
+      "title": "AI test with Python",
+      "description": "GenerateDocumentFlowFile \u2192 ExecuteDocumentPython + both IDOL CS",
+      "prompt": "Create an AI test with Python sample using ExecuteDocumentPython",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_ai_python_sample_flow",
+      "mcp_tool": "create_kd_ai_python_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_controller_service",
+        "create_controller_service",
+        "update_controller_service_properties",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "update_processor_config",
+        "create_connection"
+      ],
+      "required_config": [],
+      "optional_config": {
+        "enrichment_script": "/python/ai/add_two_fields.py"
+      }
+    },
+    {
+      "id": "enrichment",
+      "file": "stages/indexing-enrichment.json",
+      "group": "stages",
+      "title": "Indexing / enrichment stage",
+      "description": "Standalone metadata mapping + IDOL index stage",
+      "prompt": "Create a KD indexing and enrichment stage",
+      "runtime": "kd-mcp",
+      "nifi_rest": "create_http_source_idol_flow",
+      "mcp_tool": "create_kd_enrichment_flow",
+      "official_recipe": [
+        "start_new_flow",
+        "create_processor",
+        "update_processor_config",
+        "create_processor",
+        "create_connection"
+      ],
+      "required_config": [],
+      "optional_config": {}
+    }
+  ],
+  "kd_mcp_tools": [
+    "create_kd_file_connector_flow",
+    "create_kd_idol_nifi2_flow",
+    "create_kd_ai_python_flow",
+    "create_kd_sap_flow",
+    "create_kd_documentum_flow",
+    "create_kd_enrichment_flow",
+    "list_idol_nar_versions",
+    "resolve_idol_nars",
+    "validate_idol_nar_compatibility",
+    "get_idol_nar_manifest",
+    "generate_idol_nifi_flow",
+    "validate_generated_idol_flow",
+    "install_idol_nars",
+    "diagnose_idol_nifi_environment"
+  ]
+}

@@ -1,0 +1,80 @@
+<div class="experts-page">
+  <p class="experts-back">
+    <a href="/search" class="experts-back__link" (click)="goBackToSearch($event)">
+      ← Back to search results
+    </a>
+  </p>
+  <header class="experts-hero">
+    <h1 class="experts-hero__title">Find experts</h1>
+    <p class="experts-hero__subtitle">
+      People whose reading and interests match a topic, or match yours.
+    </p>
+
+    <form class="experts-search" (ngSubmit)="onSubmit()" role="search">
+      <label class="sr-only" for="experts-q">Find experts by topic</label>
+      <div class="experts-search__shell">
+        <input
+          id="experts-q"
+          type="search"
+          name="query"
+          class="experts-search__input"
+          placeholder="Find experts in a topic…"
+          [(ngModel)]="query"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="op-btn op-btn--emphasis experts-search__btn" [disabled]="!query.trim()">
+          Search
+        </button>
+      </div>
+    </form>
+  </header>
+
+  @if (lastInterest()) {
+    <section class="experts-section" aria-labelledby="experts-topic-heading">
+      <header class="experts-section__header">
+        <h2 id="experts-topic-heading" class="experts-section__title">
+          Experts in “{{ lastInterest() }}”
+        </h2>
+      </header>
+      @if (expertsLoading()) {
+        <p class="experts-section__status">Looking up experts…</p>
+      } @else if (experts().length === 0) {
+        <p class="experts-section__status">
+          No profiles matched this topic yet. Open documents in search to train your profile.
+        </p>
+      } @else {
+        <ul class="experts-grid">
+          @for (person of experts(); track person.username) {
+            <li>
+              <app-expert-card [person]="person" [termsCollapsed]="true" />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+
+  <section class="experts-section" aria-labelledby="experts-similar-heading">
+    <header class="experts-section__header">
+      <h2 id="experts-similar-heading" class="experts-section__title">People like you</h2>
+    </header>
+    @if (similarLoading()) {
+      <p class="experts-section__status">Finding similar profiles…</p>
+    } @else if (similar().length === 0) {
+      <p class="experts-section__status">
+        No similar people yet. Preview a few documents in search so Community can build your
+        profile.
+      </p>
+    } @else {
+      <ul class="experts-grid">
+        @for (person of similar(); track person.username) {
+          <li>
+            <app-expert-card [person]="person" [termsCollapsed]="true" />
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

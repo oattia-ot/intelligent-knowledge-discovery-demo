@@ -1,0 +1,249 @@
+<div class="settings-page">
+  <p class="settings-back">
+    <a class="settings-back__link" [attr.href]="backHref()" (click)="goBack($event)">
+      {{ backLabel() }}
+    </a>
+  </p>
+
+  <header class="settings-hero">
+    <h1 class="settings-hero__title">Settings</h1>
+    <p class="settings-hero__subtitle">
+      Search and change how results, recommendations, and experts behave.
+    </p>
+
+    <form class="settings-find" role="search" (ngSubmit)="$event.preventDefault()">
+      <label class="sr-only" for="settings-q">Find a setting</label>
+      <div class="settings-find__shell">
+        <span class="settings-find__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+          </svg>
+        </span>
+        <input
+          id="settings-q"
+          type="search"
+          name="query"
+          class="settings-find__input"
+          placeholder="Find a setting…"
+          [(ngModel)]="query"
+          (ngModelChange)="onFilterChange($event)"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          autofocus
+        />
+      </div>
+    </form>
+  </header>
+
+  @if (visibleSections().length === 0) {
+    <p class="settings-empty" role="status">
+      No settings match “{{ filter().trim() }}”.
+    </p>
+  }
+
+  <div class="settings-list">
+    @if (sectionVisible('operator')) {
+      <section class="settings-card" aria-labelledby="settings-operator">
+        <h2 id="settings-operator" class="settings-card__title">Join concepts with</h2>
+        <p class="settings-card__hint">Operator between concept tags.</p>
+        <ul class="settings-chips" role="listbox" aria-label="Query operator">
+          @for (op of conceptOperators; track op) {
+            <li>
+              <button
+                type="button"
+                class="settings-chip"
+                role="option"
+                [attr.aria-selected]="operator() === op"
+                [class.settings-chip--active]="operator() === op"
+                (click)="setConceptOperator(op, $event)"
+              >
+                {{ op }}
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (sectionVisible('summary-type')) {
+      <section class="settings-card" aria-labelledby="settings-summary-type">
+        <h2 id="settings-summary-type" class="settings-card__title">Summary type</h2>
+        <p class="settings-card__hint">How result snippets are generated.</p>
+        <ul class="settings-chips" role="listbox" aria-label="Summary type">
+          @for (st of summaryTypes; track st) {
+            <li>
+              <button
+                type="button"
+                class="settings-chip"
+                role="option"
+                [attr.aria-selected]="summaryType() === st"
+                [class.settings-chip--active]="summaryType() === st"
+                (click)="setSummaryType(st, $event)"
+              >
+                {{ st }}
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (sectionVisible('summary-length')) {
+      <section class="settings-card" aria-labelledby="settings-summary-length">
+        <h2 id="settings-summary-length" class="settings-card__title">Summary length</h2>
+        <p class="settings-card__hint">Maximum characters for each result snippet.</p>
+        <ul class="settings-chips" role="listbox" aria-label="Summary length">
+          @for (n of summaryLengthOptions; track n) {
+            <li>
+              <button
+                type="button"
+                class="settings-chip"
+                role="option"
+                [attr.aria-selected]="summaryLength() === n"
+                [class.settings-chip--active]="summaryLength() === n"
+                [disabled]="summaryType() === 'Off'"
+                (click)="setSummaryLength(n, $event)"
+              >
+                {{ n }}
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (sectionVisible('troubleshooting')) {
+      <section class="settings-card" aria-labelledby="settings-troubleshooting">
+        <h2 id="settings-troubleshooting" class="settings-card__title">Troubleshooting</h2>
+        <p class="settings-card__hint">
+          Last expanded query from QMS synonym / replacement rules.
+        </p>
+        <dl class="settings-debug">
+          <div class="settings-debug__row">
+            <dt>Expanded query</dt>
+            <dd>{{ lastExpandedQuery() || '—' }}</dd>
+          </div>
+        </dl>
+      </section>
+    }
+
+    @if (sectionVisible('recommendations')) {
+      <section class="settings-card" aria-labelledby="settings-recs">
+        <h2 id="settings-recs" class="settings-card__title">Recommendations</h2>
+        <p class="settings-card__hint">
+          Off hides recommendations from the whole app (header, home, and the
+          recommendations page).
+        </p>
+        <ul class="settings-chips" role="listbox" aria-label="Recommendations">
+          <li>
+            <button
+              type="button"
+              class="settings-chip"
+              role="option"
+              [attr.aria-selected]="recommendationsUserEnabled()"
+              [class.settings-chip--active]="recommendationsUserEnabled()"
+              (click)="setRecommendationsEnabled(true, $event)"
+            >
+              On
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="settings-chip"
+              role="option"
+              [attr.aria-selected]="!recommendationsUserEnabled()"
+              [class.settings-chip--active]="!recommendationsUserEnabled()"
+              (click)="setRecommendationsEnabled(false, $event)"
+            >
+              Off
+            </button>
+          </li>
+        </ul>
+
+        <h3 class="settings-card__title settings-card__title--sub">Show on home</h3>
+        <p class="settings-card__hint">
+          My Recommendations panel on the landing page. Off keeps the header link
+          and recommendations page.
+        </p>
+        <ul class="settings-chips" role="listbox" aria-label="Show recommendations on home">
+          <li>
+            <button
+              type="button"
+              class="settings-chip"
+              role="option"
+              [attr.aria-selected]="recommendationsOnHomeUserEnabled()"
+              [class.settings-chip--active]="recommendationsOnHomeUserEnabled()"
+              [disabled]="!recommendationsUserEnabled()"
+              (click)="setRecommendationsOnHome(true, $event)"
+            >
+              On
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="settings-chip"
+              role="option"
+              [attr.aria-selected]="!recommendationsOnHomeUserEnabled()"
+              [class.settings-chip--active]="!recommendationsOnHomeUserEnabled()"
+              [disabled]="!recommendationsUserEnabled()"
+              (click)="setRecommendationsOnHome(false, $event)"
+            >
+              Off
+            </button>
+          </li>
+        </ul>
+      </section>
+    }
+
+    @if (sectionVisible('experts')) {
+      <section class="settings-card" aria-labelledby="settings-experts">
+        <h2 id="settings-experts" class="settings-card__title">Experts search</h2>
+        <p class="settings-card__hint">
+          Show people whose interests match a topic. Off hides every experts
+          control from search and home.
+        </p>
+        <ul class="settings-chips" role="listbox" aria-label="Experts search">
+          <li>
+            <button
+              type="button"
+              class="settings-chip"
+              role="option"
+              [attr.aria-selected]="expertsSearchEnabled()"
+              [class.settings-chip--active]="expertsSearchEnabled()"
+              (click)="setExpertsSearchEnabled(true, $event)"
+            >
+              On
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="settings-chip"
+              role="option"
+              [attr.aria-selected]="!expertsSearchEnabled()"
+              [class.settings-chip--active]="!expertsSearchEnabled()"
+              (click)="setExpertsSearchEnabled(false, $event)"
+            >
+              Off
+            </button>
+          </li>
+        </ul>
+      </section>
+    }
+
+    @if (sectionVisible('profiles')) {
+      <section class="settings-card" aria-labelledby="settings-profiles">
+        <h2 id="settings-profiles" class="settings-card__title">My profile</h2>
+        <p class="settings-card__hint">
+          Search terms in your Community interest profile, expand a profile to
+          review weights, then delete if you want a reset.
+        </p>
+        <a routerLink="/settings/profiles" class="settings-card__link">Open profile settings</a>
+      </section>
+    }
+  </div>
+</div>

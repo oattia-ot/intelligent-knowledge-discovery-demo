@@ -1,0 +1,40 @@
+{
+  "policy": {
+    "models": "Questions go to Answer Server only. The gateway never calls Ollama or MCP for answers.",
+    "tools": "Mutating KD tools require an A2A task in state approved.",
+    "a2a": "search-agent proposes, flow-agent plans, human approves, flow-agent executes.",
+    "network": "Attach to idol-demo-network. Do not start a second NiFi or Ollama."
+  },
+  "tools": [
+    {
+      "name": "create_kd_file_connector_flow",
+      "class": "tool",
+      "mutating": true,
+      "description": "GetFile to IDOL Content index. Requires A2A approval."
+    },
+    {
+      "name": "create_kd_idol_nifi2_flow",
+      "class": "tool",
+      "mutating": true,
+      "description": "GetFileSystem to PutIDOL using the 26.3 NAR profile. Requires A2A approval."
+    },
+    {
+      "name": "create_kd_ai_python_flow",
+      "class": "tool",
+      "mutating": true,
+      "description": "IDOL enrichment python flow. Requires A2A approval."
+    },
+    {
+      "name": "create_kd_sap_flow",
+      "class": "tool",
+      "mutating": true,
+      "description": "SAP connector into the same Content engine. Requires A2A approval."
+    },
+    {
+      "name": "create_kd_documentum_flow",
+      "class": "tool",
+      "mutating": true,
+      "description": "Documentum connector into the same Content engine. Requires A2A approval."
+    }
+  ]
+}

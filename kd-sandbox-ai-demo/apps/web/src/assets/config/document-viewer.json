@@ -1,0 +1,9 @@
+{
+  "$schema_comment": "Document preview provider. Set mode to universal or redaction.",
+  "documentViewer": {
+    "mode": "universal",
+    "universalApiUrl": "/View",
+    "redactionApiUrl": "/RedactionView",
+    "snippetRedactionEnabled": false
+  }
+}

@@ -1,0 +1,4 @@
+Intelligent Knowledge Discovery Demo
+=============================
+Version: ver-1.6r0m1
+Pushed to GitHub: 2026-10-03 16:36:14 IDT

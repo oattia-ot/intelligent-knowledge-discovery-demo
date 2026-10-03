@@ -1,0 +1,209 @@
+# ==============================
+# === Updated by: Oren Attia
+# ==============================
+
+###
+# Copyright (c) 2019-2020 Micro Focus or one of its affiliates.
+#
+# Licensed under the MIT License (the "License"); you may not use this file
+# except in compliance with the License.
+#
+# The only warranties for products and services of Micro Focus and its affiliates
+# and licensors ("Micro Focus") are as may be set forth in the express warranty
+# statements accompanying such products and services. Nothing herein should be
+# construed as constituting an additional warranty. Micro Focus shall not be
+# liable for technical or editorial errors or omissions contained herein. The
+# information contained herein is subject to change without notice.
+###
+
+# Basic IDOL container setup
+# Uses nifi to ingest and index data into content
+# Uses find to make search results available
+# Default admin user is created for find in the community service
+#  - see community/run_community.sh for details
+
+
+# ---------------------------------------------------------------------------
+# NiFi Unauthorized / session-expired fix (2026-09-12)
+# Symptom: http(s)://20.86.52.130:27111/nifi/#/error
+#   "Unauthorized — Your session has expired. Please navigate home to log in again."
+# Cause:
+#   1) Port 27111 was advertised in NIFI_WEB_PROXY_HOST but never published.
+#   2) Public IP 20.86.52.130:27111 was missing from NIFI_WEB_PROXY_HOST
+#      (NiFi 2 rejects unknown Host headers with that exact error page).
+#   3) NIFI_WEB_PROXY_CONTEXT_PATH was only /idol-nifi, so a direct /nifi
+#      request fails CSRF/session checks.
+# After recreate: use https://20.86.52.130:27111/nifi  (self-signed cert).
+# Set EXTRA_IP_SANS_ENV=20.86.52.130 and IDOL_NET_HOST_IP to the same host.
+# ---------------------------------------------------------------------------
+
+version: "3.8"
+name: ${IDOL_DEPLOYMENT_TYPE:-idol-demo}
+
+x-common-labels: &common-labels
+  docker-compose/instance: ${INSTANCE:-basic-idol}
+
+x-common-server: &common-server
+# Change the IP to the address of an external IDOL LicenseServer instance
+  extra_hosts:
+  - idol-licenseserver:${LICENSESERVER_IP}
+  labels:
+    <<: *common-labels
+
+x-args-shared: 
+  - &mmap-postgres-password ieBPwmujrKEY9sh6oaybA8wyf
+
+volumes:
+  items: &common-volume
+    labels:
+      <<: *common-labels
+  static_video:
+    <<: *common-volume
+  mediaserver-processed-video:
+    <<: *common-volume
+  mmap-postgres-events: # Persistent storage for db
+    <<: *common-volume
+  # Any files dropped into this volume will be ingested and indexed
+  idol-ingest-volume:
+    labels:
+      <<: *common-labels
+  idol-staging-volume:
+    <<: *common-volume
+
+services:
+  idol-content: 
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/content:${IDOL_SERVER_VERSION}
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/content/cfg:/content/cfg:rw     # this mounts an external cfg folder
+      - /home/azureuser/idol-docker-setup/persistent-data/content/index:/content/index    # this mounts an external index 
+      - /home/azureuser/idol-docker-setup/persistent-data/content/index/main/qssp.db:/content/index/main/qssp.db      # this mounts an external qssp.db database for Hebrew phrase support (if needed) 
+      - /home/azureuser/idol-docker-setup/persistent-data/content/langfiles/hebrew.dat:/content/langfiles/hebrew.dat  # this mounts an external hebrew language pack (if needed) 
+    networks:
+      - idol-demo-network       
+  idol-agentstore:
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/agentstore:${IDOL_SERVER_VERSION}  
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/agentstore/cfg:/agentstore/cfg:rw     # this mounts an external cfg folder 
+    networks:
+      - idol-demo-network       
+  idol-category:
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/category:${IDOL_SERVER_VERSION}  
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/category/cfg:/category/cfg:rw           # this mounts an external cfg folder  
+    networks:
+      - idol-demo-network           
+  idol-categorisation-agentstore:
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/categorisation-agentstore:${IDOL_SERVER_VERSION}
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/categorisation_agentstore/cfg:/categorisation-agentstore/cfg:rw     # this mounts an external cfg folder 
+    networks:
+      - idol-demo-network       
+  idol-community:
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/community:${IDOL_SERVER_VERSION}
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/community/cfg:/community/cfg:rw     # this mounts an external cfg folder 
+    depends_on:
+      - idol-content
+      - idol-agentstore    
+    networks:
+      - idol-demo-network       
+  idol-view:
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/view:${IDOL_SERVER_VERSION}
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/view/cfg/view.cfg:/view/cfg/view.cfg  
+      - /home/azureuser/idol-docker-setup/persistent-data/view/filters/formats_e.ini:/view/filters/formats_e.ini  
+      - idol-ingest-volume:/idol-ingest     
+    depends_on:
+      - idol-agentstore
+    networks:
+      - idol-demo-network       
+  idol-nifi:
+    <<: *common-server
+    image: ${IDOL_REGISTRY}/nifi-ver2-full:${IDOL_SERVER_VERSION} # choose nifi-ver2-minimal or nifi-ver2-full
+    shm_size: 256m
+    environment:
+      # Allow both the reverse-proxy path (/idol-nifi) and the native UI path (/nifi).
+      # A single context path of /idol-nifi makes https://HOST:27111/nifi return
+      # "Unauthorized / Your session has expired".
+      NIFI_WEB_PROXY_CONTEXT_PATH: /idol-nifi,/nifi
+      NIFI_SENSITIVE_PROPS_KEY: my_nifi_sensitive_props_key
+      #HTTPS: configuration Section
+      NIFI_WEB_HTTPS_PORT: 8443
+      NIFI_WEB_HTTPS_HOST: 0.0.0.0
+      # Every Host:Port the browser uses MUST be listed. Missing 20.86.52.130:27111
+      # is what produces NiFi's #/error Unauthorized page.
+      # EXTRA_IP_SANS_ENV should be the public IP only (no port), e.g. 20.86.52.130
+      NIFI_WEB_PROXY_HOST: localhost:8443,127.0.0.1:8443,idol-docker-host:8443,ubuntu-kd-v1:8443,${IDOL_NET_HOST_IP}:8443,${IDOL_NET_HOST_IP}:27111,${EXTRA_IP_SANS_ENV}:8443,${EXTRA_IP_SANS_ENV}:27111,localhost:27111,20.86.52.130:8443,20.86.52.130:27111,20.86.52.130
+      SINGLE_USER_CREDENTIALS_USERNAME: admin
+      SINGLE_USER_CREDENTIALS_PASSWORD: OpenText2026!
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    ports:
+      # Browser URL: https://20.86.52.130:27111/nifi  (HTTPS, not http://)
+      - "27111:8443"
+    volumes:
+      - idol-ingest-volume:/idol-ingest
+      - idol-staging-volume:/idol-staging
+      - /home/azureuser/idol-docker-setup/persistent-data/nifi-scripts:/idol-scripts
+      - /home/azureuser/idol-docker-setup/shared-folder/nifi-connectors:/opt/nifi/nifi-current/tempfolder-nifi-connectors
+      - /home/azureuser/idol-docker-setup/shared-folder/richmedia-packages:/opt/nifi/nifi-current/tempfolder-richmedia-packages 
+      ## These need to be copied from the container initially
+      - /home/azureuser/idol-docker-setup/persistent-data/nifi-data/conf:/opt/nifi/nifi-current/conf
+      ## The following entries are all initially empty directories that nifi will populate
+      # ./nifi/data/data:/opt/nifi/nifi-current/data
+      # ./nifi/data/run:/opt/nifi/nifi-current/run
+      # ./nifi/data/state:/opt/nifi/nifi-current/state
+      # ./nifi/data/keytool:/opt/nifi/nifi-current/keytool
+      # ./nifi/data/content_repository:/opt/nifi/nifi-current/content_repository
+      # ./nifi/data/database_repository:/opt/nifi/nifi-current/database_repository
+      # ./nifi/data/flowfile_repository:/opt/nifi/nifi-current/flowfile_repository
+      # ./nifi/data/provenance_repository:/opt/nifi/nifi-current/provenance_repository
+    networks:
+      - idol-demo-network       
+  idol-find:
+    image: ${IDOL_REGISTRY}/find:${IDOL_SERVER_VERSION}
+    labels:
+      <<: *common-labels
+    environment:
+      #- IDOL_UI_CFG=config_basic.json # this controls the configuration of Find
+      - IDOL_UI_CFG=config_ssl.json
+      - IDOL_UI_STARTUP_SCRIPT=ui_start_ssl.sh
+      # PKCS12 cert for Find's Tomcat SSL listener
+      - IDOL_UI_SSL_PKCS_FILE=/ssl/certs/idol-find.pkcs12
+      - IDOL_UI_SSL_PKCS_PASS=${IDOL_CERT_KEYSTORE_PASS}
+      # Intermediate CA PKCS12 (imported into Find's truststore)
+      - IDOL_UI_SSL_CA_PKCS12=/ssl/certs/intermediate.pkcs12
+      - IDOL_UI_SSL_CA_PASS=${IDOL_CERT_KEYSTORE_PASS}
+      # Root CA cert (also imported into truststore)
+      - IDOL_UI_ROOT_CERTIFICATE=/ssl/certs/ca.cert.pem      
+    depends_on:
+      - idol-community
+      - idol-view
+    # Volume mount to persist find home data
+    volumes:
+      - /home/azureuser/idol-docker-setup/persistent-data/find/basic-idol/home:/opt/find/home
+    networks:
+      - idol-demo-network       
+  httpd-reverse-proxy:
+    image: httpd:2.4
+    labels:
+      <<: *common-labels
+    volumes:
+      - ./httpd-reverse-proxy/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+    depends_on:
+      - idol-find
+      - idol-nifi
+    ports:
+      - 8330:8080
+    networks:
+      - idol-demo-network 
+      
+networks:
+  idol-demo-network:
+    external: true  

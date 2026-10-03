@@ -1,0 +1,40 @@
+{
+  "$schema_comment": "Design tokens inspired by tax.gov.ae Gold theme. Map to CSS variables in Milestone 1.",
+  "themeId": "kd-gold",
+  "fonts": {
+    "primary": "Dubai, Inter, 'Segoe UI', Roboto, Arial, sans-serif",
+    "arabic": "Dubai, Tahoma, Arial, sans-serif"
+  },
+  "colors": {
+    "primary": "#C5A572",
+    "primaryDark": "#A68B4B",
+    "primaryLight": "#E0CFA3",
+    "navy": "#0B2C4D",
+    "navySoft": "#1A3F66",
+    "accentBlue": "#5B9BD5",
+    "background": "#F7F5F1",
+    "surface": "#FFFFFF",
+    "text": "#1A1A1A",
+    "textMuted": "#5C6670",
+    "border": "#E2D9C8",
+    "success": "#2E7D32",
+    "danger": "#C62828",
+    "highlight": "#FFF3CD"
+  },
+  "radius": {
+    "sm": "4px",
+    "md": "8px",
+    "lg": "12px"
+  },
+  "header": {
+    "height": "64px",
+    "background": "#0B2C4D",
+    "foreground": "#FFFFFF",
+    "accent": "#C5A572"
+  },
+  "login": {
+    "panelBackground": "#FFFFFF",
+    "buttonBackground": "#C5A572",
+    "buttonText": "#0B2C4D"
+  }
+}

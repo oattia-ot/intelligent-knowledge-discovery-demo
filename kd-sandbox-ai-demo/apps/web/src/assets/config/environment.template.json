@@ -1,0 +1,30 @@
+{
+  "$schema_comment": "Template for Angular environment mapping. Values are public proxy paths, not secrets.",
+  "production": false,
+  "appTitle": "Knowledge Discovery Sandbox Demo",
+  "appName": "KD Internal Knowledge Search",
+  "gatewayOrigin": "https://webui.idoldemos.net",
+  "aci": {
+    "community": "/Community",
+    "content": "/Content",
+    "contentIndex": "/Content/Index",
+    "qms": "/QMS",
+    "view": "/View",
+    "agentstore": "/Agentstore",
+    "category": "/Category",
+    "answerServer": "/AnswerServer"
+  },
+  "alternateApiPaths": {
+    "comment": "Already present on demo Nginx for BVC; may reuse until dedicated paths added",
+    "community": "/api/community",
+    "content": "/api/content",
+    "answerServer": "/api/answerserver"
+  },
+  "tls": {
+    "caCertPathOps": "/home/vinay/projects/ssl_nifi/nginx/ssl/ca.crt"
+  },
+  "session": {
+    "storageKey": "kd_auth_user",
+    "idleTimeoutMinutes": 30
+  }
+}

@@ -1,0 +1,165 @@
+@use './styles/tokens';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Reserve space for the vertical scrollbar so content width does not jump
+     when results/facets change height and the bar appears or disappears. */
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: var(--kd-font);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--kd-text);
+  background: var(--kd-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--kd-navy-soft);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--kd-primary-dark);
+  }
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--kd-text);
+}
+
+input,
+select,
+textarea {
+  background: var(--kd-control-bg);
+  border-color: var(--kd-border);
+}
+
+mark.kd-highlight {
+  background: var(--kd-highlight);
+  color: inherit;
+  padding: 0 0.1em;
+  border-radius: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* RTL support (Hebrew and future RTL locales) */
+html[dir='rtl'] body,
+body.kd-rtl {
+  direction: rtl;
+  text-align: start;
+}
+
+html[dir='rtl'] .kd-header__inner,
+body.kd-rtl .kd-header__inner {
+  flex-direction: row-reverse;
+}
+
+html[dir='rtl'] .kd-header__actions,
+body.kd-rtl .kd-header__actions {
+  flex-direction: row-reverse;
+}
+
+html[dir='rtl'] .kd-header__user-actions,
+body.kd-rtl .kd-header__user-actions {
+  flex-direction: row-reverse;
+}
+
+/* Shared operational pill — same geometry as header .hdr-btn / NiFi AI */
+.op-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.15rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--kd-border);
+  background: var(--kd-surface);
+  color: var(--kd-navy);
+  font-size: 0.8rem;
+  font-weight: 650;
+  font-family: inherit;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+.op-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--kd-primary) 18%, var(--kd-surface));
+  border-color: var(--kd-primary);
+  color: var(--kd-navy);
+}
+
+.op-btn:focus-visible {
+  outline: 2px solid var(--kd-primary);
+  outline-offset: 2px;
+}
+
+.op-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.op-btn--active,
+.op-btn.is-active {
+  background: color-mix(in srgb, var(--kd-primary) 35%, transparent);
+  border-color: var(--kd-primary);
+  color: var(--kd-navy);
+}
+
+.op-btn--emphasis {
+  background: var(--kd-navy);
+  border-color: var(--kd-navy);
+  color: #fff;
+}
+
+.op-btn--emphasis:hover:not(:disabled) {
+  background: var(--kd-navy-soft);
+  border-color: var(--kd-navy-soft);
+  color: #fff;
+}
+
+.chip.op-btn {
+  min-height: 1.85rem;
+  padding: 0.32rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.chip.op-btn.chip--active,
+.chip.op-btn.op-btn--active {
+  background: color-mix(in srgb, var(--kd-primary) 35%, transparent);
+  border-color: var(--kd-primary);
+  color: var(--kd-navy);
+}

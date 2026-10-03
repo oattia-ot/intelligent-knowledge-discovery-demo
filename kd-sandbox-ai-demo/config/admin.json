@@ -1,0 +1,5 @@
+{
+  "$schema_comment": "Admin UI. Only Community members of adminRole may open /admin and save JSON config.",
+  "adminRole": "KDUIAdmin",
+  "configApiUrl": "/api/admin"
+}

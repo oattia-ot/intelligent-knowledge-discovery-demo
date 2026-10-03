@@ -1,0 +1,843 @@
+<div class="search-page">
+  <div class="search-layout">
+    <!-- Left parametric filters -->
+    <aside class="filters-panel" aria-label="Search filters">
+      <header class="filters-panel__header">
+        <h2 class="filters-panel__title">Filters</h2>
+      </header>
+
+      <section class="filter-group" aria-labelledby="filter-by-database-label">
+        <h3 id="filter-by-database-label" class="filter-group__label">
+          Filter by database
+        </h3>
+        <p class="filter-group__hint">
+          Only databases that exist on Content are listed. Search uses the boxes you check.
+        </p>
+
+        @if (loadError()) {
+          <p class="filter-group__error" role="alert">{{ loadError() }}</p>
+        } @else {
+          <div class="filter-actions">
+            <button type="button" class="filter-actions__link" (click)="selectAllDatabases()">
+              Select all
+            </button>
+            <span class="filter-actions__sep" aria-hidden="true">·</span>
+            <button type="button" class="filter-actions__link" (click)="clearDatabases()">
+              Clear
+            </button>
+          </div>
+
+          <ul class="filter-list" role="list">
+            @for (db of databases(); track db.id) {
+              @let dbDocCount = databaseCount(db);
+              <li class="filter-list__item">
+                <label class="filter-check">
+                  <input
+                    type="checkbox"
+                    [checked]="isDbSelected(db.id)"
+                    (change)="toggleDb(db.id)"
+                  />
+                  <span class="filter-check__name filter-check__name--facet">
+                    <span class="filter-check__value">{{ db.label }}</span>
+                    @if (dbDocCount !== null) {
+                      <span class="filter-check__count">{{ dbDocCount }}</span>
+                    }
+                  </span>
+                </label>
+              </li>
+            }
+          </ul>
+
+          <p class="filter-group__summary">
+            {{ selectedCount }} of {{ databases().length }} selected
+          </p>
+        }
+      </section>
+
+      <!-- Parametric facets from GetQueryTagValues (no “updating…” text — avoids layout jump) -->
+      @if (facetPanels().length > 0) {
+        <div class="filters-panel__divider" aria-hidden="true"></div>
+        <div class="filter-group filter-group--facets-header">
+          <h3 class="filter-group__label">Refine by</h3>
+          @if (activeFacetCount > 0) {
+            <button type="button" class="filter-actions__link" (click)="clearFacets()">
+              Clear facets
+            </button>
+          }
+        </div>
+      }
+
+      <div
+        class="facets-body"
+        [class.facets-body--refreshing]="facetsLoading()"
+        [attr.aria-busy]="facetsLoading()"
+      >
+        @for (panel of facetPanels(); track panel.id) {
+          <section class="filter-group" [attr.aria-labelledby]="'facet-' + panel.id">
+            <h3 [id]="'facet-' + panel.id" class="filter-group__label">{{ panel.label }}</h3>
+            <ul class="filter-list" role="list">
+              @for (fv of visibleFacetValues(panel); track fv.value) {
+                <li class="filter-list__item">
+                  <label class="filter-check">
+                    <input
+                      type="checkbox"
+                      [checked]="isFacetSelected(panel.id, fv.value)"
+                      (change)="toggleFacet(panel.id, fv.value, panel.multiSelect)"
+                    />
+                    <span class="filter-check__name filter-check__name--facet">
+                      <span class="filter-check__value" [title]="fv.value">{{
+                        formatFacetLabel(fv.value)
+                      }}</span>
+                      <span class="filter-check__count">{{ fv.count }}</span>
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+            @if (hasMoreFacetValues(panel)) {
+              <button
+                type="button"
+                class="filter-show-all"
+                (click)="openFacetDialog(panel)"
+              >
+                Show all ({{ panel.values.length }})
+              </button>
+            }
+          </section>
+        }
+      </div>
+    </aside>
+
+    <!-- Search + results -->
+    <div class="search-main">
+      <div class="search-toolbar">
+        <form class="search-bar" (ngSubmit)="onSearch()" role="search">
+          <label class="sr-only" for="search-q">Search query</label>
+          <div class="search-bar__field">
+            <input
+              id="search-q"
+              type="search"
+              name="query"
+              placeholder="Add another concept and press Search…"
+              [(ngModel)]="query"
+              (input)="onQueryInput()"
+              (search)="onQuerySearchEvent()"
+              (focus)="onQueryFocus()"
+              (blur)="onQueryBlur()"
+              (keydown)="onQueryKeydown($event)"
+              [attr.aria-autocomplete]="'list'"
+              [attr.aria-expanded]="suggestionsOpen()"
+              [attr.aria-controls]="'search-suggest-list'"
+              [attr.aria-activedescendant]="
+                suggestionIndex() >= 0 ? 'search-suggest-' + suggestionIndex() : null
+              "
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              role="combobox"
+            />
+            @if (suggestionsOpen() && (suggestions().length > 0 || suggestionsLoading())) {
+              <ul
+                id="search-suggest-list"
+                class="suggest-list"
+                role="listbox"
+                aria-label="Search suggestions"
+              >
+                @if (suggestionsLoading() && suggestions().length === 0) {
+                  <li class="suggest-list__status" role="option" aria-disabled="true">
+                    Looking up suggestions…
+                  </li>
+                }
+                @for (item of suggestions(); track item.text; let i = $index) {
+                  <li
+                    [id]="'search-suggest-' + i"
+                    class="suggest-list__item"
+                    role="option"
+                    [attr.aria-selected]="suggestionIndex() === i"
+                    [class.suggest-list__item--active]="suggestionIndex() === i"
+                    (mousedown)="selectSuggestion(item, $event)"
+                  >
+                    <span
+                      class="suggest-list__text"
+                      [innerHTML]="suggestionLabelHtml(item.text)"
+                    ></span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="search-bar__btn"
+            [class.search-bar__btn--ready]="true"
+            [disabled]="loading() || selectedCount === 0"
+          >
+            @if (loading()) {
+              Searching…
+            } @else {
+              Search
+            }
+          </button>
+        </form>
+
+        @if (concepts().length > 0) {
+          <div class="concept-tags" aria-label="Search concepts">
+            <div class="concept-tags__list">
+              @for (c of concepts(); track c; let last = $last) {
+                <span class="concept-tag">
+                  <span class="concept-tag__text" [title]="c">{{ c }}</span>
+                  <button
+                    type="button"
+                    class="concept-tag__remove"
+                    (click)="removeConcept(c, $event)"
+                    [attr.aria-label]="'Remove concept ' + c"
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </span>
+                @if (!last) {
+                  <span class="concept-tags__op" aria-hidden="true">{{ conceptOperator() }}</span>
+                }
+              }
+            </div>
+            <button
+              type="button"
+              class="concept-tags__clear"
+              (click)="clearConcepts($event)"
+              title="Clear all concepts"
+            >
+              Clear all
+            </button>
+          </div>
+        }
+
+      </div>
+
+      <section class="search-body" aria-live="polite">
+        @if (searchError()) {
+          <div class="banner banner--error" role="alert">{{ searchError() }}</div>
+        }
+
+        @if (!hasSearched() && !loading()) {
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">◇</div>
+            <h2>Search knowledge bases</h2>
+            <p>
+              Add concepts with Search (or guidance topics), and set the join operator
+              with the header gear (AND, OR, NEAR…). Clear the box or all concepts to
+              show all documents (wildcard). Ask a question (for example ending with ?)
+              for an Answer Server reply.
+            </p>
+          </div>
+        }
+
+        <!-- AnswerServer NLQA (parallel to document results) -->
+        @if (answerLoading() || answerHits().length > 0 || answerError()) {
+          <section class="answer-panel" aria-label="Answer Server response">
+            <header class="answer-panel__header">
+              <div class="answer-panel__heading">
+                <h2 class="answer-panel__title">Answer</h2>
+                @if (answerQuestion()) {
+                  <p class="answer-panel__question">{{ answerQuestion() }}</p>
+                }
+              </div>
+              <button
+                type="button"
+                class="answer-panel__dismiss"
+                (click)="dismissAnswer($event)"
+                title="Dismiss answer"
+                aria-label="Dismiss answer"
+              >
+                ×
+              </button>
+            </header>
+
+            @if (answerLoading()) {
+              <p class="answer-panel__status">Finding an answer…</p>
+            }
+
+            @if (answerError()) {
+              <p class="answer-panel__error" role="status">{{ answerError() }}</p>
+            }
+
+            @for (ans of answerHits(); track $index) {
+              <article class="answer-panel__card">
+                <div class="answer-panel__text" [innerHTML]="ans.text | markdown"></div>
+                @if (ans.sources.length > 0) {
+                  <button
+                    type="button"
+                    class="answer-panel__sources-toggle"
+                    (click)="toggleAnswerSources($event)"
+                    [attr.aria-expanded]="answerSourcesOpen()"
+                  >
+                    {{ answerSourcesOpen() ? 'Hide' : 'Show' }} sources ({{ ans.sources.length }})
+                  </button>
+                  @if (answerSourcesOpen()) {
+                    <ul class="answer-panel__sources">
+                      @for (src of ans.sources; track src.ref + src.title + $index) {
+                        <li class="answer-panel__source">
+                          <div class="answer-panel__source-header">
+                            <div class="answer-panel__source-title">
+                              {{ answerSourceTitle(src) }}
+                              @if (src.database) {
+                                <span class="answer-panel__chip answer-panel__chip--muted">{{
+                                  src.database
+                                }}</span>
+                              }
+                            </div>
+                            <button
+                              type="button"
+                              class="answer-panel__preview-btn"
+                              (click)="openAnswerSourcePreview(src, $event)"
+                              [disabled]="!canPreviewAnswerSource(src)"
+                              [attr.title]="
+                                canPreviewAnswerSource(src)
+                                  ? 'Preview document'
+                                  : 'No reference available for preview'
+                              "
+                              [attr.aria-label]="
+                                'Preview source: ' + answerSourceTitle(src)
+                              "
+                            >
+                              <span class="answer-panel__preview-icon" aria-hidden="true">👁</span>
+                            </button>
+                          </div>
+                          @if (src.snippet) {
+                            <p class="answer-panel__source-snippet">{{ src.snippet }}</p>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                }
+                @if (ans.systemName) {
+                  <p class="answer-panel__system">{{ ans.systemName }}</p>
+                }
+              </article>
+            }
+
+            @if (answerHits().length > 0 && !answerLoading()) {
+              <footer class="answer-panel__actions">
+                <button
+                  type="button"
+                  class="op-btn op-btn--emphasis answer-panel__chat-btn"
+                  (click)="continueInChat($event)"
+                >
+                  Continue in AI chat
+                </button>
+                <button
+                  type="button"
+                  class="op-btn answer-panel__chat-btn answer-panel__chat-btn--ghost"
+                  (click)="startNewChat($event)"
+                >
+                  New conversation
+                </button>
+                <p class="answer-panel__chat-hint">
+                  Keep this answer as the first turn, or start a fresh chat.
+                </p>
+              </footer>
+            }
+
+            @if (answerWarnings().length > 0 && !answerLoading()) {
+              <ul class="answer-panel__warnings">
+                @for (w of answerWarnings(); track w) {
+                  <li>{{ w }}</li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        @if (
+          hasSearched() &&
+          !loading() &&
+          !searchError() &&
+          hits().length === 0 &&
+          !answerLoading() &&
+          answerHits().length === 0
+        ) {
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">○</div>
+            <h2>No results</h2>
+            <p>
+              No documents matched
+              <strong>{{ lastQuery() }}</strong>
+              in the selected databases.
+            </p>
+          </div>
+        }
+
+        @if (hits().length > 0) {
+          <div class="results-meta">
+            <span>
+              Showing {{ pageStart() }}–{{ pageEnd }} of {{ totalHits() }}
+              @if (lastQuery() && lastQuery() !== '*') {
+                for “{{ lastQuery() }}”
+              }
+            </span>
+          </div>
+
+          <ul class="result-list" role="list">
+            @for (hit of hits(); track hit.reference + hit.title + $index; let i = $index) {
+              <li class="result-card">
+                <div class="result-card__heading">
+                  <h3 class="result-card__title">{{ hit.title }}</h3>
+                  <button
+                    type="button"
+                    class="result-card__rank"
+                    [class.result-card__rank--lead]="rankArrow(i) === 'lead'"
+                    [class.result-card__rank--up]="rankArrow(i) === 'up'"
+                    [class.result-card__rank--down]="rankArrow(i) === 'down'"
+                    [class.result-card__rank--same]="rankArrow(i) === 'same'"
+                    [attr.title]="
+                      i === 0
+                        ? 'Top match · IDOL weight ' + hit.weight
+                        : 'Match ' + matchPercent(hit) + '% · ' + rankDelta(i) + ' pts vs previous result'
+                    "
+                    [attr.aria-label]="'Match ranking ' + matchPercent(hit) + ' percent'"
+                  >
+                    <span class="result-card__rank-pct">{{ matchPercent(hit) }}%</span>
+                    <span class="result-card__rank-cmp" aria-hidden="true">
+                      @if (rankArrow(i) === 'lead') {
+                        <span class="result-card__rank-arrow">★</span>
+                        <span class="result-card__rank-pts">top</span>
+                      } @else if (rankArrow(i) === 'up') {
+                        <span class="result-card__rank-arrow">↑</span>
+                        <span class="result-card__rank-pts">+{{ rankDelta(i) }} pts</span>
+                      } @else if (rankArrow(i) === 'down') {
+                        <span class="result-card__rank-arrow">↓</span>
+                        <span class="result-card__rank-pts">{{ rankDelta(i) }} pts</span>
+                      } @else {
+                        <span class="result-card__rank-arrow">→</span>
+                        <span class="result-card__rank-pts">0 pts</span>
+                      }
+                    </span>
+                  </button>
+                </div>
+                <div class="result-card__meta">
+                  @if (hit.database) {
+                    <span class="result-card__chip">{{ hit.database }}</span>
+                  }
+                  @if (hit.date) {
+                    <span class="result-card__date">{{ hit.date }}</span>
+                  }
+                  @if (hit.mimeType) {
+                    <span class="result-card__muted">{{ hit.mimeType }}</span>
+                  }
+                </div>
+                @if (hit.summary) {
+                  <button
+                    type="button"
+                    class="result-card__snippet"
+                    (click)="openPreview(hit)"
+                    [attr.title]="hit.reference ? 'Open preview' : null"
+                    [disabled]="!hit.reference"
+                  >
+                    <span [innerHTML]="snippetHtml(hit.summary)"></span>
+                  </button>
+                } @else if (hit.reference) {
+                  <button
+                    type="button"
+                    class="result-card__snippet result-card__snippet--empty"
+                    (click)="openPreview(hit)"
+                  >
+                    Open preview…
+                  </button>
+                }
+                @if (hit.url) {
+                  <p class="result-card__ref" [title]="hit.url">{{ hit.url }}</p>
+                } @else if (hit.reference) {
+                  <p class="result-card__ref" [title]="hit.reference">{{ hit.reference }}</p>
+                }
+              </li>
+            }
+          </ul>
+
+          <div class="results-meta results-meta--bottom">
+            <div class="results-meta__pager">
+              <button type="button" class="pager-btn" [disabled]="!canPrev" (click)="prevPage()">
+                Previous
+              </button>
+              <button type="button" class="pager-btn" [disabled]="!canNext" (click)="nextPage()">
+                Next
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (loading()) {
+          <div class="empty-state empty-state--loading">
+            <app-wait-indicator label="Searching…" />
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- Right: Automatic Query Guidance (QMS QuerySummary) -->
+    <aside
+      class="aqg-panel"
+      aria-label="Automatic query guidance"
+      [class.aqg-panel--refreshing]="aqgLoading()"
+      [attr.aria-busy]="aqgLoading()"
+    >
+      <header class="aqg-panel__header">
+        <h2 class="aqg-panel__title">Query guidance</h2>
+      </header>
+
+      <div class="aqg-panel__body">
+        @if (!hasSearched()) {
+          <p class="aqg-panel__hint">
+            Concepts from your search will appear here so you can explore related topics.
+          </p>
+        } @else if (aqgLoading() && aqgTree().length === 0) {
+          <p class="aqg-panel__hint">Loading guidance…</p>
+        } @else if (aqgTree().length === 0) {
+          <p class="aqg-panel__hint">No guidance terms for this query.</p>
+        } @else {
+          @if (aqgSummary()) {
+            <p class="aqg-panel__summary" [title]="aqgSummary()">{{ aqgSummary() }}</p>
+          }
+          <p class="aqg-panel__hint">
+            Topics are grouped by cluster. Select several, or open one phrase.
+          </p>
+
+          @if (selectedAqgCount > 0) {
+            <div class="aqg-actions">
+              <button
+                type="button"
+                class="aqg-actions__btn"
+                (click)="searchAqgSelected()"
+                [disabled]="loading() || selectedCount === 0"
+              >
+                Add selected ({{ selectedAqgCount }})
+              </button>
+              <button type="button" class="filter-actions__link" (click)="clearAqgSelection()">
+                Clear
+              </button>
+            </div>
+          }
+
+          <ul class="aqg-tree" role="tree" aria-label="Query guidance clusters">
+            @for (node of aqgTree(); track aqgNodeKey(node)) {
+              <li
+                class="aqg-tree__node"
+                role="treeitem"
+                [attr.aria-expanded]="node.children.length ? isAqgExpanded(node) : null"
+              >
+                <div
+                  class="aqg-tree__row aqg-tree__row--root"
+                  [class.aqg-tree__row--selected]="isAqgSelected(node.term.text)"
+                  [class.aqg-tree__row--parent]="node.children.length > 0"
+                >
+                  @if (node.children.length > 0) {
+                    <button
+                      type="button"
+                      class="aqg-tree__toggle"
+                      (click)="toggleAqgExpand(node, $event)"
+                      [attr.aria-label]="
+                        (isAqgExpanded(node) ? 'Collapse' : 'Expand') + ' ' + node.term.text
+                      "
+                    >
+                      {{ isAqgExpanded(node) ? '▾' : '▸' }}
+                    </button>
+                  } @else {
+                    <span class="aqg-tree__toggle aqg-tree__toggle--spacer" aria-hidden="true"></span>
+                  }
+
+                  <label class="aqg-check">
+                    <input
+                      type="checkbox"
+                      [checked]="isAqgParentChecked(node)"
+                      (change)="onAqgParentToggle(node, $event)"
+                      [attr.aria-label]="
+                        node.children.length
+                          ? 'Select ' + node.term.text + ' and all subtopics'
+                          : 'Select ' + node.term.text
+                      "
+                    />
+                    <span class="aqg-check__body">
+                      <button
+                        type="button"
+                        class="aqg-check__term"
+                        (click)="searchAqgTerm(node.term, $event)"
+                        [title]="'Search: ' + node.term.text"
+                      >
+                        {{ aqgHeadingLabel(node.term.text) }}
+                      </button>
+                    </span>
+                  </label>
+                </div>
+
+                @if (node.children.length > 0 && isAqgExpanded(node)) {
+                  <ul class="aqg-tree aqg-tree--children" role="group">
+                    @for (child of node.children; track child.term.text) {
+                      <li class="aqg-tree__node aqg-tree__node--child" role="treeitem">
+                        <div
+                          class="aqg-tree__row"
+                          [class.aqg-tree__row--selected]="isAqgSelected(child.term.text)"
+                        >
+                          <span
+                            class="aqg-tree__toggle aqg-tree__toggle--spacer"
+                            aria-hidden="true"
+                          ></span>
+                          <label class="aqg-check">
+                            <input
+                              type="checkbox"
+                              [checked]="isAqgSelected(child.term.text)"
+                              (change)="toggleAqgTerm(child.term.text)"
+                              [attr.aria-label]="'Select ' + child.term.text"
+                            />
+                            <span class="aqg-check__body">
+                              <button
+                                type="button"
+                                class="aqg-check__term"
+                                (click)="searchAqgTerm(child.term, $event)"
+                                [title]="'Search: ' + child.term.text"
+                              >
+                                {{ child.term.text }}
+                              </button>
+                            </span>
+                          </label>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </aside>
+  </div>
+
+  <!-- Facet expand dialog: all values + client-side search (reuses preview modal chrome) -->
+  @if (facetDialogPanel(); as dialogPanel) {
+    <div
+      class="preview-overlay"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'facet-dialog-title-' + dialogPanel.id"
+      (click)="closeFacetDialog()"
+    >
+      <div class="facet-dialog" (click)="$event.stopPropagation()">
+        <header class="preview-header">
+          <div class="preview-header__text">
+            <h2
+              class="preview-header__title"
+              [id]="'facet-dialog-title-' + dialogPanel.id"
+            >
+              {{ dialogPanel.label }}
+            </h2>
+            <p class="preview-header__meta">
+              {{ dialogPanel.values.length }} values
+              @if (facetSelectedCount(dialogPanel.id) > 0) {
+                <span>· {{ facetSelectedCount(dialogPanel.id) }} selected</span>
+              }
+            </p>
+          </div>
+          <div class="preview-header__actions">
+            @if (facetSelectedCount(dialogPanel.id) > 0) {
+              <button
+                type="button"
+                class="preview-btn preview-btn--secondary"
+                (click)="clearFacetField(dialogPanel.id)"
+              >
+                Clear selection
+              </button>
+            }
+            <button
+              type="button"
+              class="preview-btn preview-btn--close"
+              (click)="closeFacetDialog()"
+              aria-label="Close filter dialog"
+            >
+              Close
+            </button>
+          </div>
+        </header>
+
+        <div class="facet-dialog__search">
+          <label class="sr-only" [attr.for]="'facet-dialog-filter-' + dialogPanel.id">
+            Search {{ dialogPanel.label }} values
+          </label>
+          <input
+            class="facet-dialog__search-input"
+            type="search"
+            [id]="'facet-dialog-filter-' + dialogPanel.id"
+            name="facetDialogFilter"
+            [(ngModel)]="facetDialogFilter"
+            [placeholder]="'Search ' + dialogPanel.label.toLowerCase() + '…'"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="facet-dialog__body">
+          @if (filteredFacetDialogValues().length === 0) {
+            <p class="facet-dialog__empty">
+              @if (facetDialogFilter.trim()) {
+                No values match “{{ facetDialogFilter.trim() }}”.
+              } @else {
+                No values available.
+              }
+            </p>
+          } @else {
+            <ul class="filter-list" role="list">
+              @for (fv of filteredFacetDialogValues(); track fv.value) {
+                <li class="filter-list__item">
+                  <label class="filter-check">
+                    <input
+                      type="checkbox"
+                      [checked]="isFacetSelected(dialogPanel.id, fv.value)"
+                      (change)="toggleFacet(dialogPanel.id, fv.value, dialogPanel.multiSelect)"
+                    />
+                    <span class="filter-check__name filter-check__name--facet">
+                      <span class="filter-check__value" [title]="fv.value">{{
+                        formatFacetLabel(fv.value)
+                      }}</span>
+                      <span class="filter-check__count">{{ fv.count }}</span>
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <footer class="facet-dialog__footer">
+          <span class="facet-dialog__footer-hint">
+            Showing {{ filteredFacetDialogValues().length }} of
+            {{ dialogPanel.values.length }}
+          </span>
+          <button type="button" class="preview-btn" (click)="closeFacetDialog()">
+            Done
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- Document preview modal (View) -->
+  @if (previewResult(); as preview) {
+    <div
+      class="preview-overlay"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Preview: ' + preview.title"
+      (click)="closePreview()"
+    >
+      <div class="preview-panel" (click)="$event.stopPropagation()">
+        <header class="preview-header">
+          <div class="preview-header__text">
+            <h2 class="preview-header__title">{{ preview.title }}</h2>
+            <p class="preview-header__meta">
+              @if (preview.database) {
+                <span class="result-card__chip">{{ preview.database }}</span>
+              }
+              @if (preview.mimeType) {
+                <span>{{ preview.mimeType }}</span>
+              }
+            </p>
+          </div>
+          <div class="preview-header__actions">
+            <button
+              type="button"
+              class="preview-btn preview-btn--icon"
+              (click)="togglePreviewDebug($event)"
+              [attr.aria-pressed]="previewDebugOpen()"
+              [attr.aria-expanded]="previewDebugOpen()"
+              title="Diagnostics"
+              aria-label="Toggle preview diagnostics"
+            >
+              ⚙
+            </button>
+            <button
+              type="button"
+              class="preview-btn"
+              (click)="downloadOriginal(preview)"
+              [disabled]="!preview.reference"
+            >
+              Download
+            </button>
+            @if (preview.url) {
+              <button type="button" class="preview-btn preview-btn--secondary" (click)="openSourceUrl(preview)">
+                Open original
+              </button>
+            }
+            <button type="button" class="preview-btn preview-btn--close" (click)="closePreview()" aria-label="Close preview">
+              Close
+            </button>
+          </div>
+        </header>
+
+        @if (previewDebugOpen()) {
+          <aside class="preview-debug" aria-label="Preview diagnostics">
+            <h3 class="preview-debug__title">Diagnostics</h3>
+            <dl class="preview-debug__grid">
+              <div>
+                <dt>ActionID</dt>
+                <dd><code>{{ previewActionId() || '—' }}</code></dd>
+              </div>
+              <div>
+                <dt>Load time</dt>
+                <dd>
+                  @if (previewLoading()) {
+                    In progress…
+                  } @else if (previewMetrics(); as m) {
+                    {{ m.loadMs }} ms
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Mode</dt>
+                <dd>
+                  @if (previewMetrics(); as m) {
+                    {{ m.multiPage ? 'Multi-page (getlink partitions)' : 'Single HTML' }}
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Partitions</dt>
+                <dd>{{ previewMetrics()?.partitionCount ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt>Parent HTML</dt>
+                <dd>{{ formatBytes(previewMetrics()?.parentBytes) }}</dd>
+              </div>
+              <div>
+                <dt>Partition total</dt>
+                <dd>{{ formatBytes(previewMetrics()?.partitionBytes) }}</dd>
+              </div>
+              <div>
+                <dt>Display HTML</dt>
+                <dd>{{ formatBytes(previewMetrics()?.displayBytes) }}</dd>
+              </div>
+              <div>
+                <dt>Reference</dt>
+                <dd><code>{{ preview.reference || '—' }}</code></dd>
+              </div>
+            </dl>
+          </aside>
+        }
+
+        <div class="preview-body">
+          @if (previewLoading()) {
+            <div class="preview-loading" aria-live="polite">Loading document preview…</div>
+          } @else if (previewError()) {
+            <div class="preview-error" role="alert">{{ previewError() }}</div>
+          } @else if (previewUrl()) {
+            <iframe class="preview-frame" [src]="previewUrl()" title="Document preview" sandbox="allow-scripts allow-popups" referrerpolicy="no-referrer"></iframe>
+          } @else {
+            <div class="preview-error">No preview URL available.</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

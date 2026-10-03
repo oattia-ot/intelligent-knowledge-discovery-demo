@@ -1,0 +1,93 @@
+{
+  "$schema_comment": "Result card / detail field mapping. printFields is sent on Content Query.",
+  "printMode": "Fields",
+  "printFields": [
+    "DRETITLE",
+    "TITLE",
+    "NAME",
+    "DREREFERENCE",
+    "DREDBNAME",
+    "DREDATE",
+    "DRECREATEDATE",
+    "PART_MIMETYPE",
+    "AUTHOR",
+    "FOLDER",
+    "CONNECTOR_GROUP",
+    "DETECTEDLANGUAGE",
+    "NODE_ID",
+    "OBJID"
+  ],
+  "resultCard": {
+    "title": {
+      "show": true,
+      "candidates": [
+        "NAME",
+        "DRETITLE",
+        "TITLE"
+      ]
+    },
+    "reference": {
+      "show": true,
+      "source": "DREREFERENCE"
+    },
+    "snippet": {
+      "show": true
+    },
+    "database": {
+      "show": true
+    },
+    "date": {
+      "show": true,
+      "candidates": [
+        "DREDATE",
+        "DRECREATEDATE"
+      ],
+      "fieldNameTodo": true
+    },
+    "weight": {
+      "show": false
+    },
+    "sensitivity": {
+      "show": false
+    }
+  },
+  "resultDetail": {
+    "mimeType": {
+      "show": true,
+      "candidates": [
+        "PART_MIMETYPE"
+      ]
+    },
+    "author": {
+      "show": true,
+      "candidates": [
+        "AUTHOR"
+      ]
+    },
+    "folder": {
+      "show": true,
+      "candidates": [
+        "FOLDER"
+      ]
+    }
+  },
+  "summary": {
+    "enabled": true,
+    "type": "Context",
+    "characters": 200,
+    "highlight": "SummaryTerms",
+    "startTag": "<mark class='kd-highlight'>",
+    "endTag": "</mark>"
+  },
+  "sort": {
+    "default": "relevance",
+    "options": [
+      "relevance",
+      "date"
+    ]
+  },
+  "pagination": {
+    "pageSize": 12,
+    "_comment": "Number of hits per page on the search results UI (Content MaxResults)."
+  }
+}

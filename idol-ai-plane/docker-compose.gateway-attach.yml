@@ -1,0 +1,32 @@
+# Joins the already-running IDOL stack to idol-demo-network.
+# Does not deploy Content, Answer Server, or Ollama again.
+name: idol-gateway-attach
+
+services:
+  answerserver-alias:
+    image: busybox:1.36
+    command: ["sleep", "infinity"]
+    networks:
+      idol-demo-network:
+        aliases:
+          - answerserver
+          - idol-content
+          - ollama
+    profiles: ["aliases-only"]
+
+  provenance-forwarder:
+    image: curlimages/curl:8.10.1
+    environment:
+      GATEWAY_URL: ${GATEWAY_URL:-http://ai-gateway:8080}
+      GATEWAY_API_TOKEN: ${GATEWAY_API_TOKEN:?Set GATEWAY_API_TOKEN}
+    volumes:
+      - ./events:/events:ro
+    entrypoint: ["/bin/sh", "/events/provenance-to-gateway.sh"]
+    networks:
+      - idol-demo-network
+    restart: unless-stopped
+
+networks:
+  idol-demo-network:
+    external: true
+    name: ${IDOL_DOCKER_NETWORK:-idol-demo-network}

@@ -1,0 +1,12 @@
+{
+  "id": "ai-test-with-python",
+  "kind": "action",
+  "group": "custom",
+  "title": "AI test with Python",
+  "name": "AI test with Python",
+  "description": "GenerateDocumentFlowFile \u2192 ExecuteDocumentPython + both IDOL CS",
+  "prompt": "Create an AI test with Python sample using ExecuteDocumentPython",
+  "needs": "",
+  "required_config": [],
+  "custom": true
+}

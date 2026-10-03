@@ -1,0 +1,87 @@
+<div class="chat-page">
+  <header class="chat-toolbar">
+    <div class="chat-toolbar__titles">
+      <h1 class="chat-toolbar__title">AI chat</h1>
+      <p class="chat-toolbar__scope">
+        Searching
+        <strong>{{ scopeLabel() }}</strong>
+        @if (continuedFromSearch()) {
+          <span class="chat-toolbar__badge">Continued from answer</span>
+        }
+        @if (lockedRefs().length) {
+          <span class="chat-toolbar__badge chat-toolbar__badge--lock">Sources only</span>
+        }
+      </p>
+    </div>
+    <div class="chat-toolbar__actions">
+      @if (canGoBackToResults()) {
+        <a class="chat-toolbar__link" href="#" (click)="goBackToResults($event)">Back to results</a>
+      }
+      <button type="button" class="op-btn chat-toolbar__btn" (click)="newConversation()">
+        New conversation
+      </button>
+    </div>
+  </header>
+
+  <div #thread class="chat-thread" role="log" aria-live="polite" aria-relevant="additions">
+    @for (msg of messages(); track msg.id) {
+      <article
+        class="chat-bubble"
+        [class.chat-bubble--user]="msg.role === 'user'"
+        [class.chat-bubble--assistant]="msg.role === 'assistant'"
+      >
+        <p class="chat-bubble__who">{{ msg.role === 'user' ? 'You' : 'Assistant' }}</p>
+        @if (msg.markdown) {
+          <div class="chat-bubble__body" [innerHTML]="msg.text | markdown"></div>
+        } @else if (looksLikeHtml(msg.text)) {
+          <div class="chat-bubble__body" [innerHTML]="msg.text"></div>
+        } @else {
+          <div class="chat-bubble__body chat-bubble__body--plain">{{ msg.text }}</div>
+        }
+        @if (msg.sources?.length) {
+          <ul class="chat-sources">
+            @for (src of msg.sources; track src.ref + src.title + $index) {
+              <li>
+                @if (src.ref && src.ref.startsWith('http')) {
+                  <a [href]="src.ref" target="_blank" rel="noopener noreferrer">{{
+                    sourceLabel(src)
+                  }}</a>
+                } @else {
+                  <span>{{ sourceLabel(src) }}</span>
+                }
+                @if (src.database) {
+                  <span class="chat-sources__db">{{ src.database }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    }
+
+    @if (sending()) {
+      <p class="chat-status" role="status">Searching your knowledge bases…</p>
+    }
+    @if (error()) {
+      <p class="chat-error" role="alert">{{ error() }}</p>
+    }
+  </div>
+
+  <form class="chat-composer" (ngSubmit)="send()">
+    <label class="sr-only" for="chat-input">Follow-up message</label>
+    <textarea
+      #composer
+      id="chat-input"
+      name="draft"
+      class="chat-composer__input"
+      rows="1"
+      [(ngModel)]="draft"
+      (keydown)="onComposerKeydown($event)"
+      placeholder="Ask a follow-up, or start a new topic…"
+      [disabled]="sending()"
+    ></textarea>
+    <button type="submit" class="op-btn op-btn--emphasis chat-composer__send" [disabled]="sending() || !draft.trim()">
+      Send
+    </button>
+  </form>
+</div>

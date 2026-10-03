@@ -1,0 +1,8 @@
+# Official Cloudera NiFi MCP server
+# https://github.com/cloudera/nifi-mcp-server
+nifi-mcp-server @ git+https://github.com/cloudera/nifi-mcp-server.git
+mcp>=1.9.4,<2.0.0
+requests>=2.32.0
+httpx>=0.27.0
+tenacity>=8.0.0
+python-dotenv>=1.0.0

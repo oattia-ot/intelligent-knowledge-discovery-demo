@@ -1,0 +1,87 @@
+    location = /nifi-unreach.html {
+        default_type text/html;
+        add_header Cache-Control "no-store";
+        alias /usr/share/nginx/html/nifi-unreach.html;
+    }
+
+    location = / {
+        return 302 /nifi/;
+    }
+
+    # Speak to Jetty as localhost:8443 with SNI=localhost so the self-signed
+    # cert is accepted (container DNS names trigger HTTP 400 Invalid SNI).
+    location /nifi-api {
+        proxy_pass https://${NIFI_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_ssl_verify off;
+        proxy_ssl_server_name on;
+        proxy_ssl_name ${NIFI_TLS_SERVER_NAME};
+        proxy_connect_timeout 5s;
+        proxy_set_header Host localhost:8443;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Accept $http_accept;
+        proxy_set_header Content-Type $content_type;
+        proxy_set_header X-Requested-With $http_x_requested_with;
+        proxy_set_header Request-Token $http_request_token;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header X-ProxyHost $nifi_http_host;
+        proxy_set_header X-ProxyPort ${NIFI_PROXY_HOST_PORT};
+        proxy_set_header X-ProxyScheme $scheme;
+        ${NIFI_PROXY_CONTEXT_HEADER}
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_buffering off;
+        proxy_redirect https://localhost:8443/ /;
+        proxy_redirect https://127.0.0.1:8443/ /;
+        proxy_intercept_errors on;
+        error_page 502 503 504 /nifi-unreach.html;
+    }
+
+    location /nifi {
+        proxy_pass https://${NIFI_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_ssl_verify off;
+        proxy_ssl_server_name on;
+        proxy_ssl_name ${NIFI_TLS_SERVER_NAME};
+        proxy_connect_timeout 5s;
+        proxy_set_header Host localhost:8443;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Accept $http_accept;
+        proxy_set_header Content-Type $content_type;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header X-ProxyHost $nifi_http_host;
+        proxy_set_header X-ProxyPort ${NIFI_PROXY_HOST_PORT};
+        proxy_set_header X-ProxyScheme $scheme;
+        ${NIFI_PROXY_CONTEXT_HEADER}
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_buffering off;
+        proxy_redirect https://localhost:8443/ /;
+        proxy_redirect https://127.0.0.1:8443/ /;
+        proxy_intercept_errors on;
+        error_page 502 503 504 /nifi-unreach.html;
+    }
+
+    location /nifi-docs {
+        proxy_pass https://${NIFI_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_ssl_verify off;
+        proxy_ssl_server_name on;
+        proxy_ssl_name ${NIFI_TLS_SERVER_NAME};
+        proxy_set_header Host localhost:8443;
+        proxy_set_header X-ProxyHost $nifi_http_host;
+        proxy_set_header X-ProxyPort ${NIFI_PROXY_HOST_PORT};
+        proxy_set_header X-ProxyScheme $scheme;
+        ${NIFI_PROXY_CONTEXT_HEADER}
+        proxy_read_timeout 300s;
+        proxy_intercept_errors on;
+        error_page 502 503 504 /nifi-unreach.html;
+    }
+
+    location / {
+        return 302 /nifi/;
+    }

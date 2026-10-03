@@ -1,0 +1,82 @@
+{
+  "$comment": "statusPath is the proxy 'test' path. testBase is the proxy 'target'. Test button executes testUrl = testBase + statusPath (e.g. http://127.0.0.1:9030/action=getstatus).",
+  "defaults": {
+    "statusPath": "/action=getstatus",
+    "timeoutMs": 3000,
+    "$timeoutMs_comment": "Login preflight and Settings → Test abort after this many milliseconds (default 3s). Override per browser in Settings → Application → Health check timeout (1–60s)."
+  },
+  "endpoints": {
+    "communityApiUrl": {
+      "label": "Community",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9033",
+      "testUrl": "https://20.86.52.130:9033/action=getstatus"
+    },
+    "contentApiUrl": {
+      "label": "Content",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9103",
+      "testUrl": "https://20.86.52.130:9103/action=getstatus"
+    },
+    "contentIndexApiUrl": {
+      "label": "Content Index",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9104",
+      "testUrl": "https://20.86.52.130:9104/action=getstatus"
+    },
+    "qmsApiUrl": {
+      "label": "QMS",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:16000",
+      "testUrl": "https://20.86.52.130:16000/action=getstatus"
+    },
+    "viewApiUrl": {
+      "label": "View",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9083",
+      "testUrl": "https://20.86.52.130:9083/action=getstatus"
+    },
+    "viewServerUrl": {
+      "label": "View Server",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9083",
+      "testUrl": "https://20.86.52.130:9083/action=getstatus"
+    },
+    "viewUpstreamOrigin": {
+      "label": "View Upstream Origin",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9083",
+      "testUrl": "https://20.86.52.130:9083/action=getstatus"
+    },
+    "agentstoreApiUrl": {
+      "label": "Agentstore",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:20050",
+      "testUrl": "https://20.86.52.130:20050/action=getstatus"
+    },
+    "categoryApiUrl": {
+      "label": "Category",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:9060",
+      "testUrl": "https://20.86.52.130:9060/action=getstatus"
+    },
+    "answerServerApiUrl": {
+      "label": "AnswerServer",
+      "statusPath": "/action=getstatus",
+      "testBase": "https://20.86.52.130:12000",
+      "testUrl": "https://20.86.52.130:12000/action=getstatus"
+    },
+    "gatewayOrigin": {
+      "label": "Gateway origin",
+      "statusPath": "/",
+      "optional": true
+    },
+    "nifiCanvasUrl": {
+      "label": "NiFi canvas",
+      "statusPath": "/nifi/",
+      "testBase": "https://20.86.52.130:27111",
+      "testUrl": "https://20.86.52.130:27111/nifi/",
+      "optional": true
+    }
+  }
+}
