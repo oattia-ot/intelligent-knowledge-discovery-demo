@@ -50,7 +50,7 @@ After install finishes, the running stack is the topology below. The clip is mut
 
 <video src="./docs/media/improved-ai-knowledge-topology.mp4" muted autoplay loop playsinline controls width="720" style="max-width:100%;height:auto;border-radius:12px;"></video>
 
-[Open the muted topology clip](./docs/media/improved-ai-knowledge-topology.mp4)
+[Open the muted topology clip](./docs/media/improved-ai-knowledge-topology.gif)
 
 Search UI stays on port 4200. NiFi AI is the in-page overlay. Agent and tool calls go through the gateway on port 27100. IDOL, Answer Server, and NiFi stay on the shared `idol-demo-network`.
 
