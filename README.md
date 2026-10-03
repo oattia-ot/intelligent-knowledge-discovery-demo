@@ -46,6 +46,8 @@ When start finishes:
 
 ## Deployed
 
+Prepare the demo environment from the [idol-docker-setup](https://github.com/oattia-ot/idol-docker-setup) repository.
+
 After install finishes, the running stack is the topology below. The clip is muted (no audio track) and loops in the page.
 
 ![Improved AI knowledge topology](docs/media/improved-ai-knowledge-topology.gif)
